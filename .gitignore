@@ -1,0 +1,8 @@
+# Rendu du TP : uniquement Assets, Packages, ProjectSettings
+/*
+!/.gitignore
+!/Assets/
+!/Packages/
+!/ProjectSettings/
+/Assets/_Recovery/
+/Assets/_Recovery.meta
