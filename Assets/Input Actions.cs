@@ -131,6 +131,16 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""Slow"",
+                    ""type"": ""Button"",
+                    ""id"": ""3b6f1c2e-7d4a-4e8b-9c1f-5a2d8e6b4c70"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -221,6 +231,17 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Fire"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9e4a7b21-3c8d-4f6e-a1b5-2d7c9f0e8a13"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Slow"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -233,6 +254,7 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         m_MyMap_HeadMovement = m_MyMap.FindAction("Head Movement", throwIfNotFound: true);
         m_MyMap_Jump = m_MyMap.FindAction("Jump", throwIfNotFound: true);
         m_MyMap_Fire = m_MyMap.FindAction("Fire", throwIfNotFound: true);
+        m_MyMap_Slow = m_MyMap.FindAction("Slow", throwIfNotFound: true);
     }
 
     ~@InputActions()
@@ -317,6 +339,7 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_MyMap_HeadMovement;
     private readonly InputAction m_MyMap_Jump;
     private readonly InputAction m_MyMap_Fire;
+    private readonly InputAction m_MyMap_Slow;
     /// <summary>
     /// Provides access to input actions defined in input action map "MyMap".
     /// </summary>
@@ -344,6 +367,10 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "MyMap/Fire".
         /// </summary>
         public InputAction @Fire => m_Wrapper.m_MyMap_Fire;
+        /// <summary>
+        /// Provides access to the underlying input action "MyMap/Slow".
+        /// </summary>
+        public InputAction @Slow => m_Wrapper.m_MyMap_Slow;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -382,6 +409,9 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
             @Fire.started += instance.OnFire;
             @Fire.performed += instance.OnFire;
             @Fire.canceled += instance.OnFire;
+            @Slow.started += instance.OnSlow;
+            @Slow.performed += instance.OnSlow;
+            @Slow.canceled += instance.OnSlow;
         }
 
         /// <summary>
@@ -405,6 +435,9 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
             @Fire.started -= instance.OnFire;
             @Fire.performed -= instance.OnFire;
             @Fire.canceled -= instance.OnFire;
+            @Slow.started -= instance.OnSlow;
+            @Slow.performed -= instance.OnSlow;
+            @Slow.canceled -= instance.OnSlow;
         }
 
         /// <summary>
@@ -473,5 +506,12 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnFire(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Slow" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSlow(InputAction.CallbackContext context);
     }
 }

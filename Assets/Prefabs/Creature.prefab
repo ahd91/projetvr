@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 894941414445872209}
   m_Layer: 0
   m_Name: Creature
-  m_TagString: Untagged
+  m_TagString: Creature
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -154,6 +154,7 @@ MonoBehaviour:
   damage: 1
   attackRange: 1.5
   attackCooldown: 1
+  slowFactor: 0.3
 --- !u!114 &894941414445872209
 MonoBehaviour:
   m_ObjectHideFlags: 0

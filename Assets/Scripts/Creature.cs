@@ -1,58 +1,94 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-// Créature : suit le joueur sur la NavMesh et lui fait des dégâts quand elle est collée à lui.
-[RequireComponent(typeof(NavMeshAgent))]
+// Créature : suit le joueur sur la NavMesh, lui fait des dégâts quand elle est proche,
+// et peut être ralentie par la capacité spéciale de l'arme.
 public class Creature : MonoBehaviour
 {
+    [Header("Attaque")]
     [SerializeField] private int damage = 1;
-    [SerializeField] private float attackRange = 1.5f;
-    [SerializeField] private float attackCooldown = 1f; // secondes entre deux coups
+    [SerializeField] private float attackRange = 2f;     // distance à partir de laquelle elle frappe
+    [SerializeField] private float attackCooldown = 1f;  // secondes entre deux coups
+
+    [Header("Ralentissement")]
+    [SerializeField] private float slowFactor = 0.3f;    // 0.3 = 30 % de la vitesse normale
 
     private NavMeshAgent agent;
-    private Transform player;
+    private Renderer rend;
+    private GameObject player;
     private Health playerHealth;
-    private float nextAttackTime;
+
+    private float normalSpeed;
+    private Color normalColor;
+    private float nextAttackTime = 0f; // moment où elle pourra frapper à nouveau
+    private float slowEndTime = 0f;    // moment où le ralentissement s'arrête
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        // ponytail: un seul joueur dans la scène, pas besoin de tag
-        PlayerController pc = FindAnyObjectByType<PlayerController>();
-        if (pc)
+        rend = GetComponent<Renderer>();
+        normalSpeed = agent.speed;
+        normalColor = rend.material.color;
+
+        // Le joueur est trouvé par son Tag (il faut mettre le Tag "Player" sur le prefab Player)
+        player = GameObject.FindWithTag("Player");
+        if (player != null)
         {
-            player = pc.transform;
-            playerHealth = pc.GetComponent<Health>();
+            playerHealth = player.GetComponent<Health>();
         }
 
-        // Hors NavMesh, SetDestination lance une erreur à CHAQUE frame (=> 999+ erreurs).
-        // On prévient une seule fois et on désactive le script.
+        // Hors NavMesh, SetDestination fait une erreur à CHAQUE frame : on prévient une fois et on s'arrête
         if (!agent.isOnNavMesh)
         {
-            Debug.LogWarning(name + " n'est pas sur la NavMesh : re-Bake la NavMesh ou rapproche la créature du sol.");
+            Debug.LogWarning(name + " n'est pas sur la NavMesh");
             enabled = false;
         }
     }
 
     void Update()
     {
-        if (!player)
+        // Joueur mort (détruit) : on ne fait plus rien
+        if (player == null)
         {
-            return; // joueur mort (détruit) : on ne fait plus rien
+            return;
         }
 
-        agent.SetDestination(player.position);
+        // Vitesse et couleur selon si elle est ralentie ou non
+        if (IsSlowed())
+        {
+            agent.speed = normalSpeed * slowFactor;
+            rend.material.color = Color.cyan;
+        }
+        else
+        {
+            agent.speed = normalSpeed;
+            rend.material.color = normalColor;
+        }
 
-        // Distance à plat (on ignore la hauteur : les pivots ne sont pas au même niveau)
-        Vector3 diff = player.position - transform.position;
-        diff.y = 0;
-        if (diff.magnitude <= attackRange && Time.time >= nextAttackTime)
+        // Suivre le joueur
+        agent.SetDestination(player.transform.position);
+
+        // Frapper si on est assez proche et que le cooldown est fini
+        float distance = Vector3.Distance(transform.position, player.transform.position);
+        if (distance <= attackRange && Time.time >= nextAttackTime)
         {
             nextAttackTime = Time.time + attackCooldown;
-            if (playerHealth)
+            if (playerHealth != null)
             {
                 playerHealth.TakeDamage(damage);
             }
         }
+    }
+
+    // Appelée par le PlayerController quand on touche la créature au clic droit
+    public void Slow(float duration)
+    {
+        slowEndTime = Time.time + duration;
+    }
+
+    // Servira pour le défi (ex : « tue 3 créatures ralenties »)
+    public bool IsSlowed()
+    {
+        return Time.time < slowEndTime;
     }
 }

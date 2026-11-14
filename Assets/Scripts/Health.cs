@@ -6,7 +6,7 @@ public class Health : MonoBehaviour
     [SerializeField] private int maxHp = 3;
     private int hp;
 
-    void Awake()
+    void Start()
     {
         hp = maxHp;
     }

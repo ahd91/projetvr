@@ -15,12 +15,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private InputActionReference mouseMovement;
     [SerializeField] private InputActionReference fire;
     [SerializeField] private InputActionReference jump;
+    [SerializeField] private InputActionReference slow;
     
     [Header("GroundCheck")]
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private LayerMask groundCheckMask;
     [Header("Weapon")]
     [SerializeField] private int damage = 1;
+    [SerializeField] private float slowDuration = 3f; // secondes de ralentissement
 
     private CharacterController controller;
     private float rotationX = 0.0f;
@@ -51,6 +53,12 @@ public class PlayerController : MonoBehaviour
             fire.action.Enable();
         }
 
+        if (slow)
+        {
+            slow.action.performed += SlowPressed;
+            slow.action.Enable();
+        }
+
         controller = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
     }
@@ -62,21 +70,46 @@ public class PlayerController : MonoBehaviour
         {
             fire.action.performed -= FirePressed;
         }
+
+        if (slow)
+        {
+            slow.action.performed -= SlowPressed;
+        }
     }
 
+    // Rayon depuis le centre de l'écran (le viseur). Utilisé par le tir ET par la capacité.
+    // Renvoie true si on a touché quelque chose, et l'objet touché dans "hit" (comme l'exemple "out" du cours)
+    private bool ShootRay(out RaycastHit hit)
+    {
+        Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2.0f, Screen.height / 2.0f, 0));
+        return Physics.Raycast(ray, out hit);
+    }
+
+    // Clic gauche : enlève des PV à l'objet touché (s'il a un script Health)
     private void FirePressed(InputAction.CallbackContext obj)
     {
         RaycastHit hit;
-        Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2.0f, Screen.height / 2.0f, 0));
-
-        if (Physics.Raycast(ray, out hit))
+        if (ShootRay(out hit))
         {
             Debug.Log("Touché : " + hit.collider.name);
-            // InParent : le collider peut être sur un enfant du modèle 3D
-            Health health = hit.collider.GetComponentInParent<Health>();
-            if (health)
+            Health health = hit.collider.GetComponent<Health>();
+            if (health != null)
             {
                 health.TakeDamage(damage);
+            }
+        }
+    }
+
+    // Clic droit (capacité spéciale) : ralentit la créature touchée
+    private void SlowPressed(InputAction.CallbackContext obj)
+    {
+        RaycastHit hit;
+        if (ShootRay(out hit))
+        {
+            Creature creature = hit.collider.GetComponent<Creature>();
+            if (creature != null)
+            {
+                creature.Slow(slowDuration);
             }
         }
     }

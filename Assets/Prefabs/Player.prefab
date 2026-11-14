@@ -152,7 +152,7 @@ GameObject:
   - component: {fileID: 4269231397096293154}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -219,11 +219,13 @@ MonoBehaviour:
   mouseMovement: {fileID: 187269692042219864, guid: 8ca96a2fd126c8e459295a97b89f8f67, type: 3}
   fire: {fileID: 5521814699012822946, guid: 8ca96a2fd126c8e459295a97b89f8f67, type: 3}
   jump: {fileID: 6928708166325064621, guid: 8ca96a2fd126c8e459295a97b89f8f67, type: 3}
+  slow: {fileID: 0}
   groundCheckDistance: 0.2
   groundCheckMask:
     serializedVersion: 2
     m_Bits: 64
   damage: 1
+  slowDuration: 3
 --- !u!114 &4269231397096293154
 MonoBehaviour:
   m_ObjectHideFlags: 0
