@@ -239,6 +239,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHp: 10
+  destroyOnDeath: 0
 --- !u!1 &5440878504710388761
 GameObject:
   m_ObjectHideFlags: 0

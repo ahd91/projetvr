@@ -27,7 +27,7 @@ Pour l'instant, la logique passe avant les graphismes : les créatures sont des 
 | Raycast | Le tir part du centre de l'écran : `PlayerController.FirePressed` |
 | Prefabs | `Player` et `Creature`, la créature étant instanciée par le spawner |
 | Navigation | La NavMesh est calculée sur l'arène, et les créatures suivent le joueur avec un `NavMeshAgent` |
-| UI | Le viseur (bientôt aussi la vie, le score et le défi) |
+| UI | Le viseur, le HUD (vie, score, défi en cours) et le panneau Game Over avec son bouton Rejouer |
 | Défi (« recette ») | `ChallengeManager` : quand une créature meurt, `Health` le prévient et lui dit si elle était ralentie |
 | Import d'assets 3D | Prévu à la fin |
 
@@ -39,6 +39,7 @@ Pour l'instant, la logique passe avant les graphismes : les créatures sont des 
 | `Health.cs` | Gère les points de vie. Utilisé par les créatures et par le joueur. |
 | `Creature.cs` | La créature suit le joueur sur la NavMesh et lui fait des dégâts quand elle est proche, avec un temps de recharge (cooldown). Elle peut être ralentie : elle passe à 30 % de sa vitesse et devient cyan pendant 3 s. |
 | `ChallengeManager.cs` | Tire un défi au hasard (« tue X créatures » ou « tue X créatures ralenties »), compte la progression et augmente le score de 1 quand le défi est réussi, puis génère un nouveau défi. |
+| `HUD.cs` | Affiche la vie, le score et le défi. À la mort du joueur, il affiche le Game Over, met le jeu en pause (`Time.timeScale = 0`) et libère la souris. Le bouton Rejouer recharge la scène. |
 | `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), avec un maximum de créatures en même temps. |
 
 ## Avancement
@@ -49,7 +50,7 @@ Pour l'instant, la logique passe avant les graphismes : les créatures sont des 
 - [x] 4. Spawner sur des points éloignés du joueur
 - [x] 5. Capacité spéciale : ralentir (clic droit)
 - [x] 6. Défi, qui augmente le score et génère un nouveau défi
-- [ ] 7. HUD (vie, score, défi en cours) et game over
+- [x] 7. HUD (vie, score, défi en cours) et game over
 - [ ] 8. Vrais modèles 3D
 
 ## Problèmes rencontrés et solutions
