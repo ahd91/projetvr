@@ -88,6 +88,12 @@ public class PlayerController : MonoBehaviour
     // Clic gauche : enlève des PV à l'objet touché (s'il a un script Health)
     private void FirePressed(InputAction.CallbackContext obj)
     {
+        // Jeu en pause (Game Over) : on ne tire plus
+        if (Time.timeScale == 0)
+        {
+            return;
+        }
+
         RaycastHit hit;
         if (ShootRay(out hit))
         {
@@ -103,6 +109,12 @@ public class PlayerController : MonoBehaviour
     // Clic droit (capacité spéciale) : ralentit la créature touchée
     private void SlowPressed(InputAction.CallbackContext obj)
     {
+        // Jeu en pause (Game Over) : plus de capacité non plus
+        if (Time.timeScale == 0)
+        {
+            return;
+        }
+
         RaycastHit hit;
         if (ShootRay(out hit))
         {

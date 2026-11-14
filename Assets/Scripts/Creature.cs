@@ -68,9 +68,11 @@ public class Creature : MonoBehaviour
         // Suivre le joueur
         agent.SetDestination(player.transform.position);
 
-        // Frapper si on est assez proche et que le cooldown est fini
-        float distance = Vector3.Distance(transform.position, player.transform.position);
-        if (distance <= attackRange && Time.time >= nextAttackTime)
+        // Frapper si on est assez proche, qu'aucun mur ne nous sépare, et que le cooldown est fini.
+        // On vise le centre du joueur : son pivot est à ses pieds, alors que celui de la créature est en son milieu.
+        Vector3 playerCenter = player.transform.position + Vector3.up;
+        float distance = Vector3.Distance(transform.position, playerCenter);
+        if (distance <= attackRange && Time.time >= nextAttackTime && CanSeePlayer(playerCenter))
         {
             nextAttackTime = Time.time + attackCooldown;
             if (playerHealth != null)
@@ -78,6 +80,18 @@ public class Creature : MonoBehaviour
                 playerHealth.TakeDamage(damage);
             }
         }
+    }
+
+    // Lance un rayon vers le joueur : true si le premier objet touché est bien le joueur (pas un mur)
+    private bool CanSeePlayer(Vector3 playerCenter)
+    {
+        Vector3 direction = playerCenter - transform.position;
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, direction, out hit, attackRange))
+        {
+            return hit.collider.gameObject == player;
+        }
+        return false;
     }
 
     // Appelée par le PlayerController quand on touche la créature au clic droit

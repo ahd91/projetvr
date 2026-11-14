@@ -193,7 +193,7 @@ Le script \texttt{HUD} met à jour trois textes à chaque frame : la vie, le sco
 \toprule
 \textbf{Notion} & \textbf{Utilisation dans le projet} \\
 \midrule
-Raycast & Tir et capacité spéciale depuis le centre de l'écran \\
+Raycast & Tir et capacité spéciale depuis le centre de l'écran, vérification qu'aucun mur ne sépare une créature du joueur \\
 Prefabs & Le joueur et les créatures, instanciées par le spawner \\
 Navigation & NavMesh calculée sur l'arène, créatures avec un \texttt{NavMeshAgent} \\
 UI & Viseur, HUD (vie, score, défi), panneau Game Over avec un bouton \\
@@ -266,11 +266,11 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
   \item Dans \texttt{Start()}, les actions sont activées, et les fonctions \texttt{FirePressed} et \texttt{SlowPressed} sont abonnées aux événements \texttt{performed}. Elles sont désabonnées dans \texttt{OnDestroy()}.
   \item \texttt{ShootRay(out RaycastHit hit)} lance un rayon depuis le centre de l'écran et renvoie \texttt{true} si un objet est touché. Le tir et la capacité utilisent tous les deux cette fonction.
   \item Le tir cherche un composant \texttt{Health} sur l'objet touché. La capacité cherche un composant \texttt{Creature}.
+  \item Si le jeu est en pause (\texttt{Time.timeScale == 0}, pendant le Game Over), \texttt{FirePressed} et \texttt{SlowPressed} s'arrêtent tout de suite.
 \end{itemize}
 
 \textbf{Limites et problèmes connus.}
 \begin{itemize}
-  \item \textbf{On peut encore tirer pendant le Game Over.} \texttt{Time.timeScale = 0} met en pause le temps, mais pas les événements de l'Input System. Un clic pendant l'écran de fin lance donc toujours un rayon. Si une créature est tuée à ce moment-là, le défi progresse. Pour corriger, il faudrait désactiver les actions \texttt{fire} et \texttt{slow} à la mort du joueur.
   \item \textbf{Le rayon n'a pas de portée maximale ni de filtre.} \texttt{Physics.Raycast(ray, out hit)} touche le premier collider sur une distance infinie. Ce n'est pas gênant ici, car l'arène est fermée et les murs arrêtent le rayon. Le cours montre une version avec une distance maximale (\texttt{\_maxDist}), qu'on pourrait ajouter.
   \item \textbf{Le collider doit être sur l'objet qui porte le script.} On utilise \texttt{hit.collider.GetComponent<Health>()}. Si on remplace la capsule par un modèle 3D dont le collider est sur un objet enfant, le tir ne trouvera plus le \texttt{Health}. Il faudra faire attention à l'étape 8.
   \item \textbf{Le saut ne fonctionne pas.} L'action \texttt{jump} est activée mais jamais lue dans \texttt{Update()}. C'est le cas depuis le code fourni, et le jeu n'en a pas besoin pour l'instant.
@@ -337,15 +337,16 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
   \begin{enumerate}
     \item ajuste sa vitesse et sa couleur selon \texttt{IsSlowed()} ;
     \item donne la position du joueur à l'agent avec \texttt{SetDestination} ;
-    \item frappe si \texttt{Vector3.Distance} est inférieure à \texttt{attackRange} et que \texttt{Time.time} a dépassé \texttt{nextAttackTime}.
+    \item frappe si trois conditions sont réunies : la distance au \emph{centre} du joueur est inférieure à \texttt{attackRange}, \texttt{Time.time} a dépassé \texttt{nextAttackTime}, et \texttt{CanSeePlayer()} confirme qu'aucun obstacle ne les sépare.
   \end{enumerate}
+  \item \texttt{CanSeePlayer()} lance un rayon de la créature vers le joueur, sur une longueur \texttt{attackRange}. Elle renvoie \texttt{true} seulement si le premier objet touché est le joueur.
   \item Le ralentissement est stocké sous la forme d'une heure de fin (\texttt{slowEndTime}). \texttt{IsSlowed()} compare simplement cette heure avec \texttt{Time.time}.
 \end{itemize}
 
 \textbf{Limites et problèmes connus.}
 \begin{itemize}
-  \item \textbf{La créature peut frapper à travers un mur.} L'attaque ne regarde que la distance, pas les obstacles. Une créature collée de l'autre côté d'un obstacle fin peut donc faire des dégâts. Un raycast vers le joueur avant de frapper corrigerait ce problème.
-  \item \textbf{La portée réelle est plus courte que 2 m.} \texttt{Vector3.Distance} prend aussi la hauteur en compte. Or le point de référence du joueur est à ses pieds, alors que celui de la créature est au milieu de la capsule (Base Offset de 1). L'écart vertical de 1 m réduit la portée horizontale à environ $\sqrt{2^2 - 1^2} \approx 1{,}7$ m.
+  \item \textbf{Une autre créature peut bloquer l'attaque.} Le rayon de \texttt{CanSeePlayer()} s'arrête sur le premier collider. Si une créature se trouve entre le joueur et une autre créature, celle de derrière ne frappe pas. En pratique, ça limite un peu les dégâts quand le joueur est encerclé, ce qui n'est pas gênant.
+  \item \textbf{Le \og centre \fg{} du joueur est codé en dur.} \texttt{player.transform.position + Vector3.up} suppose que le joueur mesure 2 m et que son pivot est à ses pieds. Si on change le modèle du joueur, il faudra adapter cette valeur.
   \item \textbf{Le chemin est recalculé à chaque frame.} \texttt{SetDestination} est appelé environ 60 fois par seconde et par créature, alors que le joueur bouge peu entre deux frames. Avec 10 créatures, ça reste léger, mais ça ne passerait pas à l'échelle avec beaucoup plus de créatures. On pourrait le recalculer seulement quelques fois par seconde.
   \item \textbf{Un matériau est créé par créature.} \texttt{rend.material} crée une copie du matériau pour chaque créature, ce qui est nécessaire pour qu'une seule devienne cyan. La couleur est aussi réappliquée à chaque frame, même quand elle ne change pas.
   \item \textbf{Une créature hors de la NavMesh reste bloquée.} Elle se désactive, mais elle n'est pas détruite. Elle compte donc toujours dans la limite des 10 créatures du spawner.
@@ -455,7 +456,6 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
 \begin{itemize}
   \item \textbf{Les textes sont reconstruits à chaque frame.} Les chaînes de caractères sont recréées environ 60 fois par seconde, même quand rien n'a changé. Cela crée des déchets mémoire, que le \emph{garbage collector} devra nettoyer. Ici, c'est négligeable.
   \item \textbf{Des erreurs en boucle si une référence manque.} Si une case de l'Inspector est vide, \texttt{Update()} provoque une \texttt{NullReferenceException} à chaque frame. C'est le même phénomène que les 999+ erreurs de la créature hors NavMesh.
-  \item \textbf{La pause ne bloque pas les entrées} (voir PlayerController) : le joueur peut toujours tirer derrière le panneau Game Over.
   \item \textbf{Les textes Legacy.} J'ai utilisé l'ancien composant \texttt{Text}, plus simple, plutôt que TextMeshPro, qui est recommandé aujourd'hui par Unity mais demande d'importer des ressources supplémentaires.
 \end{itemize}
 
@@ -470,6 +470,36 @@ Unity affichait l'erreur \og You are trying to save a Prefab with a missing scri
 
 \subsection{Des milliers d'erreurs dans la Console}
 Quand une créature n'est pas posée sur la NavMesh, \texttt{SetDestination} provoque une erreur à chaque frame, ce qui faisait plus de 999 erreurs en quelques secondes et ralentissait fortement l'ordinateur. J'ai ajouté une vérification au démarrage : si \texttt{agent.isOnNavMesh} est faux, la créature affiche un seul avertissement et désactive son script.
+
+\subsection{On pouvait tirer pendant le Game Over}
+En relisant le code, j'ai remarqué que \texttt{Time.timeScale = 0} met bien le temps en pause, mais pas les événements de l'Input System. Un clic pendant l'écran de fin lançait donc toujours un rayon. Si une créature mourait à ce moment-là, le défi progressait. J'ai corrigé ce problème en ajoutant au début de \texttt{FirePressed} et de \texttt{SlowPressed} :
+\begin{lstlisting}
+if (Time.timeScale == 0)
+{
+    return;
+}
+\end{lstlisting}
+
+\subsection{Les créatures frappaient à travers les murs}
+L'attaque ne vérifiait que la distance. Une créature collée de l'autre côté d'un obstacle pouvait donc faire des dégâts au joueur. La distance était aussi faussée : le pivot du joueur est à ses pieds alors que celui de la créature est en son milieu, ce qui réduisait la portée horizontale réelle à environ $\sqrt{2^2 - 1^2} \approx 1{,}7$ m au lieu de 2 m.
+
+Pour corriger ces deux problèmes :
+\begin{itemize}
+  \item la distance est maintenant mesurée jusqu'au \emph{centre} du joueur (\texttt{position + Vector3.up}) ;
+  \item avant de frapper, la créature lance un rayon vers le joueur, comme le tir du joueur mais dans l'autre sens. Elle ne frappe que si le premier objet touché est bien le joueur.
+\end{itemize}
+\begin{lstlisting}
+private bool CanSeePlayer(Vector3 playerCenter)
+{
+    Vector3 direction = playerCenter - transform.position;
+    RaycastHit hit;
+    if (Physics.Raycast(transform.position, direction, out hit, attackRange))
+    {
+        return hit.collider.gameObject == player;
+    }
+    return false;
+}
+\end{lstlisting}
 
 \subsection{Une scène perdue}
 L'ordinateur s'est éteint alors que la scène n'était pas enregistrée. Unity avait créé une copie de secours dans le dossier \texttt{Assets/\_Recovery}, ce qui m'a permis de la récupérer. Depuis, j'enregistre régulièrement avec Ctrl+S.
