@@ -203,7 +203,264 @@ Import d'assets 3D & \emph{À compléter (étape 8)} \\
 \end{table}
 
 % =====================================================================
-\section{Problèmes rencontrés et solutions}
+\section{Documentation du code}
+
+Cette partie décrit la version actuelle de chaque script : son rôle, ses paramètres réglables dans l'Inspector, son fonctionnement, et ses limites ou problèmes connus. Les limites listées sont des points que j'ai identifiés en relisant le code. Ils ne bloquent pas le jeu dans son état actuel, mais ce sont des pistes d'amélioration.
+
+\subsection{Vue d'ensemble : comment les scripts communiquent}
+
+Les scripts se retrouvent entre eux de trois façons, toutes vues en cours :
+\begin{itemize}
+  \item \textbf{par Tag} : \texttt{GameObject.FindWithTag("Player")} et \texttt{FindGameObjectsWithTag("Creature")} ;
+  \item \textbf{par nom} : \texttt{GameObject.Find("ChallengeManager")} ;
+  \item \textbf{par référence glissée dans l'Inspector} : le HUD reçoit directement le \texttt{Health} du joueur et le \texttt{ChallengeManager}.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Script appelant} & \textbf{Méthode appelée} & \textbf{Quand} \\
+\midrule
+\texttt{PlayerController} & \texttt{Health.TakeDamage()} & tir (clic gauche) qui touche \\
+\texttt{PlayerController} & \texttt{Creature.Slow()} & capacité (clic droit) qui touche \\
+\texttt{Creature} & \texttt{Health.TakeDamage()} du joueur & créature assez proche \\
+\texttt{Health} & \texttt{ChallengeManager.CreatureKilled()} & mort d'une créature \\
+\texttt{HUD} & \texttt{Health.GetHp()} & à chaque frame \\
+\texttt{HUD} & \texttt{ChallengeManager.GetScore()} et \texttt{GetChallengeText()} & à chaque frame \\
+Bouton \og Rejouer \fg{} & \texttt{HUD.Restart()} & clic (événement OnClick) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Dépendances à respecter dans l'éditeur.} Le code suppose que :
+\begin{itemize}
+  \item la racine du prefab \texttt{Player} a le Tag \texttt{Player} ;
+  \item le prefab \texttt{Creature} a le Tag \texttt{Creature} ;
+  \item l'objet qui porte le \texttt{ChallengeManager} s'appelle exactement \texttt{ChallengeManager}.
+\end{itemize}
+Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concernée s'arrête sans message d'erreur. Par exemple, si l'objet est renommé, les défis ne progressent plus.
+
+% ---------------------------------------------------------------------
+\subsection{PlayerController}
+
+\textbf{Rôle.} Ce script est fourni par le professeur et je l'ai complété. Il gère le déplacement (ZQSD), la caméra (souris), la gravité, le tir et la capacité spéciale.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llp{8cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
+\midrule
+\texttt{damage} & 1 & points de vie retirés par un tir \\
+\texttt{slowDuration} & 3 s & durée du ralentissement \\
+\texttt{fire}, \texttt{slow} & -- & actions de l'Input System (clic gauche, clic droit) \\
+\texttt{groundCheckMask} & Ground & layer considéré comme du sol \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fonctionnement.}
+\begin{itemize}
+  \item Dans \texttt{Start()}, les actions sont activées, et les fonctions \texttt{FirePressed} et \texttt{SlowPressed} sont abonnées aux événements \texttt{performed}. Elles sont désabonnées dans \texttt{OnDestroy()}.
+  \item \texttt{ShootRay(out RaycastHit hit)} lance un rayon depuis le centre de l'écran et renvoie \texttt{true} si un objet est touché. Le tir et la capacité utilisent tous les deux cette fonction.
+  \item Le tir cherche un composant \texttt{Health} sur l'objet touché. La capacité cherche un composant \texttt{Creature}.
+\end{itemize}
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{On peut encore tirer pendant le Game Over.} \texttt{Time.timeScale = 0} met en pause le temps, mais pas les événements de l'Input System. Un clic pendant l'écran de fin lance donc toujours un rayon. Si une créature est tuée à ce moment-là, le défi progresse. Pour corriger, il faudrait désactiver les actions \texttt{fire} et \texttt{slow} à la mort du joueur.
+  \item \textbf{Le rayon n'a pas de portée maximale ni de filtre.} \texttt{Physics.Raycast(ray, out hit)} touche le premier collider sur une distance infinie. Ce n'est pas gênant ici, car l'arène est fermée et les murs arrêtent le rayon. Le cours montre une version avec une distance maximale (\texttt{\_maxDist}), qu'on pourrait ajouter.
+  \item \textbf{Le collider doit être sur l'objet qui porte le script.} On utilise \texttt{hit.collider.GetComponent<Health>()}. Si on remplace la capsule par un modèle 3D dont le collider est sur un objet enfant, le tir ne trouvera plus le \texttt{Health}. Il faudra faire attention à l'étape 8.
+  \item \textbf{Le saut ne fonctionne pas.} L'action \texttt{jump} est activée mais jamais lue dans \texttt{Update()}. C'est le cas depuis le code fourni, et le jeu n'en a pas besoin pour l'instant.
+  \item \textbf{La sensibilité de la souris dépend du nombre d'images par seconde.} Le déplacement de la souris (\texttt{delta}) correspond déjà au mouvement depuis la dernière frame. Le multiplier en plus par \texttt{Time.deltaTime} fait que la caméra tourne moins vite quand le jeu tourne plus vite. C'est un détail du code fourni que je n'ai pas modifié.
+  \item \textbf{Code inutile.} La ligne \texttt{using UnityEngine.Events;} n'est pas utilisée. La classe C\# générée \texttt{Input Actions.cs} n'est pas utilisée non plus, car les actions passent par des \texttt{InputActionReference}.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\subsection{Health}
+
+\textbf{Rôle.} Gérer les points de vie d'un objet. Le même script est utilisé pour le joueur, les créatures et la cible de test.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llp{6cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
+\midrule
+\texttt{maxHp} & 3 (créature), 10 (joueur) & points de vie au départ \\
+\texttt{destroyOnDeath} & oui (créature), non (joueur) & détruire l'objet à 0 PV \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fonctionnement.}
+\begin{itemize}
+  \item \texttt{TakeDamage(int amount)} retire des PV. Si l'objet est déjà à 0, le coup est ignoré, car \texttt{Destroy} n'agit qu'à la fin de la frame et un deuxième coup pourrait arriver avant.
+  \item À 0 PV, si l'objet a aussi un script \texttt{Creature}, \texttt{Health} prévient le \texttt{ChallengeManager} et lui dit si la créature était ralentie.
+  \item Le joueur n'est pas détruit (\texttt{destroyOnDeath} décoché), sinon sa caméra disparaîtrait. C'est le HUD qui détecte sa mort avec \texttt{GetHp()}.
+\end{itemize}
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{\texttt{Health} connaît les défis.} Un script de points de vie ne devrait normalement pas savoir qu'il existe des créatures et des défis. Ce choix garde le code court, mais si on ajoute d'autres façons de mourir ou d'autres défis, ce script devra encore grossir.
+  \item \textbf{Recherche par nom.} \texttt{GameObject.Find("ChallengeManager")} parcourt la scène à chaque mort. C'est acceptable avec 10 créatures au maximum, mais c'est fragile si l'objet est renommé (voir la vue d'ensemble).
+  \item \textbf{Les PV sont initialisés dans \texttt{Start()}.} Une créature touchée dans la même frame que son apparition, avant son \texttt{Start()}, aurait encore 0 PV et ignorerait le coup. C'est très peu probable en jeu. L'initialisation dans \texttt{Awake()}, qui est appelée plus tôt, éviterait ce cas.
+  \item \textbf{Les PV ne peuvent que baisser.} Il n'y a pas de soin et pas de maximum vérifié. Ce n'est pas nécessaire pour l'instant.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\subsection{Creature}
+
+\textbf{Rôle.} Poursuivre le joueur, l'attaquer quand elle est proche, et pouvoir être ralentie.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llp{8cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
+\midrule
+\texttt{damage} & 1 & PV retirés au joueur par coup \\
+\texttt{attackRange} & 2 m & distance à partir de laquelle elle frappe \\
+\texttt{attackCooldown} & 1 s & temps minimum entre deux coups \\
+\texttt{slowFactor} & 0,3 & vitesse pendant le ralentissement (30\,\%) \\
+Speed (NavMeshAgent) & 2 & vitesse normale \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fonctionnement.}
+\begin{itemize}
+  \item Dans \texttt{Start()}, la créature mémorise sa vitesse et sa couleur normales, trouve le joueur par son Tag et vérifie qu'elle est bien sur la NavMesh.
+  \item Dans \texttt{Update()}, elle :
+  \begin{enumerate}
+    \item ajuste sa vitesse et sa couleur selon \texttt{IsSlowed()} ;
+    \item donne la position du joueur à l'agent avec \texttt{SetDestination} ;
+    \item frappe si \texttt{Vector3.Distance} est inférieure à \texttt{attackRange} et que \texttt{Time.time} a dépassé \texttt{nextAttackTime}.
+  \end{enumerate}
+  \item Le ralentissement est stocké sous la forme d'une heure de fin (\texttt{slowEndTime}). \texttt{IsSlowed()} compare simplement cette heure avec \texttt{Time.time}.
+\end{itemize}
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{La créature peut frapper à travers un mur.} L'attaque ne regarde que la distance, pas les obstacles. Une créature collée de l'autre côté d'un obstacle fin peut donc faire des dégâts. Un raycast vers le joueur avant de frapper corrigerait ce problème.
+  \item \textbf{La portée réelle est plus courte que 2 m.} \texttt{Vector3.Distance} prend aussi la hauteur en compte. Or le point de référence du joueur est à ses pieds, alors que celui de la créature est au milieu de la capsule (Base Offset de 1). L'écart vertical de 1 m réduit la portée horizontale à environ $\sqrt{2^2 - 1^2} \approx 1{,}7$ m.
+  \item \textbf{Le chemin est recalculé à chaque frame.} \texttt{SetDestination} est appelé environ 60 fois par seconde et par créature, alors que le joueur bouge peu entre deux frames. Avec 10 créatures, ça reste léger, mais ça ne passerait pas à l'échelle avec beaucoup plus de créatures. On pourrait le recalculer seulement quelques fois par seconde.
+  \item \textbf{Un matériau est créé par créature.} \texttt{rend.material} crée une copie du matériau pour chaque créature, ce qui est nécessaire pour qu'une seule devienne cyan. La couleur est aussi réappliquée à chaque frame, même quand elle ne change pas.
+  \item \textbf{Une créature hors de la NavMesh reste bloquée.} Elle se désactive, mais elle n'est pas détruite. Elle compte donc toujours dans la limite des 10 créatures du spawner.
+  \item \textbf{La créature peut entrer dans le joueur.} La distance d'arrêt de l'agent (\emph{Stopping Distance}) est à 0. L'agent essaie donc d'atteindre exactement la position du joueur. Mettre une distance d'arrêt proche de la portée d'attaque serait plus propre.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\subsection{Spawner}
+
+\textbf{Rôle.} Faire apparaître des créatures régulièrement, loin du joueur.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llp{7cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
+\midrule
+\texttt{creaturePrefabs} & Creature & prefabs possibles, un est tiré au hasard \\
+\texttt{spawnPoints} & SP1 à SP4 & points d'apparition (coins de l'arène) \\
+\texttt{spawnInterval} & 3 s & temps entre deux tentatives \\
+\texttt{minDistance} & 15 m & distance minimale au joueur \\
+\texttt{maxCreatures} & 10 & nombre maximum de créatures en vie \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fonctionnement.} Toutes les \texttt{spawnInterval} secondes :
+\begin{enumerate}
+  \item le spawner compte les créatures en vie avec \texttt{FindGameObjectsWithTag("Creature").Length} et s'arrête s'il y en a trop ;
+  \item il tire un point au hasard ;
+  \item si ce point est trop près du joueur, il abandonne pour ce tour ;
+  \item sinon, il instancie un prefab tiré au hasard sur ce point.
+\end{enumerate}
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{Des apparitions sont perdues.} Quand le point tiré est trop près du joueur, on ne réessaie pas tout de suite avec un autre point. Si le joueur se tient dans un coin, environ une tentative sur quatre est perdue. Parcourir les points avec une boucle \texttt{for} pour en trouver un valide corrigerait ce problème.
+  \item \textbf{Une créature peut apparaître sous les yeux du joueur.} Seule la distance est vérifiée, pas le champ de vision. À 15 m, le joueur peut voir la créature apparaître.
+  \item \textbf{Une erreur si les tableaux sont vides.} Si \texttt{spawnPoints} ou \texttt{creaturePrefabs} est vide dans l'Inspector, \texttt{Random.Range(0, 0)} renvoie 0 et l'accès à la case 0 provoque une erreur à chaque tentative. Une vérification de \texttt{Length} au démarrage éviterait ce cas.
+  \item \textbf{La difficulté est fixe.} L'intervalle et le nombre maximum de créatures ne changent pas au cours de la partie.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\subsection{ChallengeManager}
+
+\textbf{Rôle.} Générer un défi, suivre sa progression et gérer le score.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llp{8cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
+\midrule
+\texttt{minTarget} & 2 & nombre minimum de créatures à tuer \\
+\texttt{maxTarget} & 5 & nombre maximum de créatures à tuer \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fonctionnement.}
+\begin{itemize}
+  \item Un défi est décrit par trois variables : \texttt{challengeType} (0 = créatures, 1 = créatures ralenties), \texttt{target} (l'objectif) et \texttt{progress} (le nombre déjà tué).
+  \item \texttt{NewChallenge()} tire le type et l'objectif avec \texttt{Random.Range}. On écrit \texttt{maxTarget + 1}, car la borne haute de \texttt{Random.Range} sur des entiers est exclue.
+  \item \texttt{CreatureKilled(bool wasSlowed)} ignore les créatures non ralenties pendant un défi de type 1. Sinon, elle fait avancer le défi. Quand l'objectif est atteint, le score augmente et un nouveau défi est tiré.
+  \item \texttt{GetChallengeText()} et \texttt{GetScore()} servent à l'affichage dans le HUD.
+\end{itemize}
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{L'état ralenti est vérifié au moment de la mort.} Si le ralentissement se termine juste avant le coup fatal, la créature ne compte pas pour un défi \og ralenties \fg{}. C'est logique, mais ça peut surprendre le joueur. Il n'y a pas de message pour le prévenir.
+  \item \textbf{Le même défi peut revenir deux fois de suite}, puisque le tirage est indépendant du défi précédent.
+  \item \textbf{Le score ne dépend pas de la difficulté.} Un défi à 5 créatures rapporte autant qu'un défi à 2.
+  \item \textbf{Les types de défi sont des nombres.} \texttt{0} et \texttt{1} ne sont pas parlants. Avec plus de types, un \texttt{switch} (vu en cours) ou une énumération rendrait le code plus lisible.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\subsection{HUD}
+
+\textbf{Rôle.} Afficher la vie, le score et le défi, et gérer l'écran de fin.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{6cm}p{8cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Rôle} \\
+\midrule
+\texttt{healthText}, \texttt{scoreText}, \texttt{challengeText} & les trois textes (\emph{UI > Legacy > Text}) \\
+\texttt{gameOverPanel} & panneau affiché à la mort du joueur \\
+\texttt{playerHealth}, \texttt{challengeManager} & références glissées depuis la Hierarchy \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fonctionnement.}
+\begin{itemize}
+  \item À chaque frame, les trois textes sont mis à jour.
+  \item Quand \texttt{playerHealth.GetHp()} vaut 0 et que le panneau n'est pas encore affiché, le HUD :
+  \begin{itemize}
+    \item affiche le panneau ;
+    \item met \texttt{Time.timeScale} à 0, ce qui fige les créatures, les cooldowns et le spawner ;
+    \item libère la souris.
+  \end{itemize}
+  \item \texttt{Restart()}, appelée par le bouton, remet \texttt{Time.timeScale} à 1 et recharge la scène avec \texttt{SceneManager.LoadScene}. Pour que cela fonctionne, la scène doit être dans la liste des scènes du build, ce qui est le cas.
+\end{itemize}
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{Les textes sont reconstruits à chaque frame.} Les chaînes de caractères sont recréées environ 60 fois par seconde, même quand rien n'a changé. Cela crée des déchets mémoire, que le \emph{garbage collector} devra nettoyer. Ici, c'est négligeable.
+  \item \textbf{Des erreurs en boucle si une référence manque.} Si une case de l'Inspector est vide, \texttt{Update()} provoque une \texttt{NullReferenceException} à chaque frame. C'est le même phénomène que les 999+ erreurs de la créature hors NavMesh.
+  \item \textbf{La pause ne bloque pas les entrées} (voir PlayerController) : le joueur peut toujours tirer derrière le panneau Game Over.
+  \item \textbf{Les textes Legacy.} J'ai utilisé l'ancien composant \texttt{Text}, plus simple, plutôt que TextMeshPro, qui est recommandé aujourd'hui par Unity mais demande d'importer des ressources supplémentaires.
+\end{itemize}
+
+% =====================================================================
+\section{Problèmes rencontrés pendant le développement}
 
 \subsection{Le tir comptait double}
 Après avoir lancé le jeu deux fois de suite, un seul tir retirait deux points de vie (la cible passait de 2 à 0 PV). L'abonnement à l'événement de tir de l'Input System (\texttt{fire.action.performed += FirePressed}) n'était jamais retiré. Comme le rechargement du domaine est désactivé au lancement du mode Play, l'ancien abonnement restait actif d'une partie à l'autre. Pour corriger ce problème, j'ai désabonné l'événement dans \texttt{OnDestroy()}. \texttt{Health} ignore aussi les coups reçus quand l'objet est déjà mort, car \texttt{Destroy} n'agit qu'à la fin de la frame.
