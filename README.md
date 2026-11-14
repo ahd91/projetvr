@@ -28,6 +28,7 @@ Pour l'instant, la logique passe avant les graphismes : les créatures sont des 
 | Prefabs | `Player` et `Creature`, la créature étant instanciée par le spawner |
 | Navigation | La NavMesh est calculée sur l'arène, et les créatures suivent le joueur avec un `NavMeshAgent` |
 | UI | Le viseur (bientôt aussi la vie, le score et le défi) |
+| Défi (« recette ») | `ChallengeManager` : quand une créature meurt, `Health` le prévient et lui dit si elle était ralentie |
 | Import d'assets 3D | Prévu à la fin |
 
 ## Scripts
@@ -37,6 +38,7 @@ Pour l'instant, la logique passe avant les graphismes : les créatures sont des 
 | `PlayerController.cs` | Gère le déplacement et la caméra. Le même raycast sert au tir (clic gauche : dégâts) et à la capacité (clic droit : ralentissement). Fourni par le prof, puis complété. |
 | `Health.cs` | Gère les points de vie. Utilisé par les créatures et par le joueur. |
 | `Creature.cs` | La créature suit le joueur sur la NavMesh et lui fait des dégâts quand elle est proche, avec un temps de recharge (cooldown). Elle peut être ralentie : elle passe à 30 % de sa vitesse et devient cyan pendant 3 s. |
+| `ChallengeManager.cs` | Tire un défi au hasard (« tue X créatures » ou « tue X créatures ralenties »), compte la progression et augmente le score de 1 quand le défi est réussi, puis génère un nouveau défi. |
 | `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), avec un maximum de créatures en même temps. |
 
 ## Avancement
@@ -46,7 +48,7 @@ Pour l'instant, la logique passe avant les graphismes : les créatures sont des 
 - [x] 3. Prefab de créature qui suit le joueur et lui fait des dégâts au contact
 - [x] 4. Spawner sur des points éloignés du joueur
 - [x] 5. Capacité spéciale : ralentir (clic droit)
-- [ ] 6. Défi, qui augmente le score et génère un nouveau défi
+- [x] 6. Défi, qui augmente le score et génère un nouveau défi
 - [ ] 7. HUD (vie, score, défi en cours) et game over
 - [ ] 8. Vrais modèles 3D
 

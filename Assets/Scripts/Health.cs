@@ -22,6 +22,14 @@ public class Health : MonoBehaviour
         Debug.Log(name + " : " + hp + " PV");
         if (hp <= 0)
         {
+            // Si c'est une créature, on prévient le gestionnaire de défi
+            Creature creature = GetComponent<Creature>();
+            GameObject manager = GameObject.Find("ChallengeManager");
+            if (creature != null && manager != null)
+            {
+                manager.GetComponent<ChallengeManager>().CreatureKilled(creature.IsSlowed());
+            }
+
             Destroy(gameObject);
         }
     }
