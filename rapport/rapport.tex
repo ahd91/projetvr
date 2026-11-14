@@ -1,0 +1,227 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{float}
+
+% Style des extraits de code C#
+\lstset{
+  language=[Sharp]C,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{orange!70!black},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  frame=single,
+  breaklines=true,
+  showstringspaces=false,
+  extendedchars=true,
+  literate={é}{{\'e}}1 {è}{{\`e}}1 {à}{{\`a}}1 {ç}{{\c{c}}}1 {ê}{{\^e}}1 {É}{{\'E}}1 {ù}{{\`u}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {«}{{\guillemotleft}}1 {»}{{\guillemotright}}1
+}
+
+% Dossier des captures d'écran (à placer dans rapport/images/)
+\graphicspath{{images/}}
+
+\title{ZZ2 -- Réalité virtuelle\\TP final : un FPS d'Halloween à Noël}
+\author{Ahmed Ladhari}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% =====================================================================
+\section{Introduction}
+
+Ce TP consiste à réaliser un petit jeu sous Unity qui utilise les notions vues en cours : le raycast, les prefabs, la navigation, l'interface (UI) et l'import d'assets 3D. J'ai choisi le sujet proposé : un jeu de tir à la première personne (FPS) dans un univers Halloween à la période de Noël, inspiré de \emph{L'étrange Noël de Mr Jack}. Le joueur doit combattre des créatures qui apparaissent au fur et à mesure et le poursuivent. Son arme possède une capacité spéciale, et un défi lui est proposé pendant la partie.
+
+Comme conseillé dans le sujet, je me suis d'abord concentré sur la logique du jeu avec des formes simples (cubes et capsules). Les vrais modèles 3D ne sont intégrés qu'à la fin.
+
+Le projet a été réalisé avec \textbf{Unity 6} (version 6000.6.9f1), le pipeline de rendu URP, le nouvel Input System et le package \textbf{AI Navigation}.
+
+% =====================================================================
+\section{Le jeu}
+
+\subsection{Principe}
+\begin{itemize}
+  \item Le joueur se déplace dans une arène fermée par des murs, avec quelques obstacles.
+  \item Des créatures apparaissent régulièrement sur des points éloignés du joueur et le poursuivent.
+  \item Au contact, elles lui enlèvent des points de vie.
+  \item Le joueur peut tirer pour tuer les créatures (clic gauche) ou les ralentir avec la capacité spéciale (clic droit).
+  \item Un défi est affiché à l'écran. Quand il est réussi, le score augmente et un nouveau défi est généré.
+  \item Quand le joueur n'a plus de vie, la partie s'arrête et un écran \og Game Over \fg{} permet de rejouer.
+\end{itemize}
+
+\subsection{Contrôles}
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Touche} & \textbf{Action} \\
+\midrule
+ZQSD & Se déplacer \\
+Souris & Regarder \\
+Clic gauche & Tirer \\
+Clic droit & Capacité spéciale : ralentir la créature visée \\
+Échap & Libérer la souris \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Organisation des scripts}
+\begin{table}[H]
+\centering
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Script} & \textbf{Rôle} \\
+\midrule
+\texttt{PlayerController} & Déplacement, caméra, tir et capacité spéciale (fourni par le professeur, puis complété) \\
+\texttt{Health} & Points de vie, utilisé par le joueur et par les créatures \\
+\texttt{Creature} & Poursuite du joueur, dégâts au contact, ralentissement \\
+\texttt{Spawner} & Apparition des créatures sur des points éloignés du joueur \\
+\texttt{ChallengeManager} & Génération et vérification des défis, score \\
+\texttt{HUD} & Affichage de la vie, du score, du défi et du Game Over \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Démarche}
+
+J'ai avancé par petites étapes. Chaque étape ajoute une seule fonctionnalité, que je testais avant de passer à la suivante.
+
+\subsection{Étape 1 : la scène et la NavMesh}
+J'ai créé un sol (un \emph{Plane} de $50 \times 50$ m), quatre murs et quelques cubes comme obstacles. Tous ces objets sont rangés dans un objet vide \texttt{Level} et placés sur un layer \texttt{Ground}, que le \texttt{PlayerController} utilise pour savoir si le joueur touche le sol.
+
+J'ai ensuite ajouté un composant \textbf{NavMesh Surface} et calculé la NavMesh (bouton \emph{Bake}). La NavMesh est la surface sur laquelle les agents IA ont le droit de marcher. Unity la calcule à partir de la géométrie de la scène, et elle contourne automatiquement les obstacles.
+
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.7\textwidth]{navmesh.png}
+%   \caption{La NavMesh calculée sur l'arène (en bleu)}
+% \end{figure}
+
+\subsection{Étape 2 : le tir par raycast}
+Le \texttt{PlayerController} fourni lançait déjà un rayon depuis le centre de l'écran, mais il ne faisait rien de ce qu'il touchait. J'ai créé un script \texttt{Health} qui donne des points de vie à un objet. Quand le rayon touche un objet qui possède ce script, il lui retire des points de vie :
+
+\begin{lstlisting}
+private void FirePressed(InputAction.CallbackContext obj)
+{
+    RaycastHit hit;
+    if (ShootRay(out hit))
+    {
+        Health health = hit.collider.GetComponent<Health>();
+        if (health != null)
+        {
+            health.TakeDamage(damage);
+        }
+    }
+}
+\end{lstlisting}
+
+\texttt{Physics.Raycast} lance un rayon invisible et renvoie le premier collider touché. C'est la méthode classique du \og hitscan \fg{} pour les armes à tir instantané. J'ai mis le calcul du rayon dans une fonction \texttt{ShootRay}, qui renvoie l'objet touché grâce à un paramètre \texttt{out}, comme dans l'exemple du cours. Le tir et la capacité spéciale peuvent ainsi utiliser le même rayon.
+
+J'ai aussi ajouté un viseur : une petite \emph{Image} au centre d'un \emph{Canvas}.
+
+\subsection{Étape 3 : la créature}
+La créature est une capsule avec un composant \textbf{NavMeshAgent} et un script \texttt{Creature}. À chaque frame, elle donne la position du joueur à l'agent, qui calcule tout seul le chemin sur la NavMesh :
+
+\begin{lstlisting}
+agent.SetDestination(player.transform.position);
+\end{lstlisting}
+
+Le joueur est retrouvé grâce à son Tag avec \texttt{GameObject.FindWithTag("Player")}. Pour les dégâts, la créature mesure sa distance au joueur avec \texttt{Vector3.Distance}. Si elle est assez proche, elle lui retire un point de vie, au maximum une fois par seconde (un \emph{cooldown} basé sur \texttt{Time.time}). J'en ai ensuite fait un \textbf{prefab} pour pouvoir en créer autant que nécessaire.
+
+\subsection{Étape 4 : le spawner}
+Le script \texttt{Spawner} fait apparaître une créature toutes les 3 secondes avec \texttt{Instantiate}. Il tire au hasard un point parmi quatre points placés dans les coins de l'arène. Si ce point est à moins de 15 m du joueur, il n'y fait rien apparaître et réessaie au tour suivant. Cela évite qu'une créature apparaisse sur le joueur (le \og spawn kill \fg{}). Le nombre de créatures en vie est limité à 10, pour ne pas faire chuter les performances. Le spawner reçoit un tableau de prefabs, ce qui permettra d'avoir plusieurs formes de créatures.
+
+\subsection{Étape 5 : la capacité spéciale (ralentir)}
+Au clic droit, le même rayon que pour le tir est lancé. Si une créature est touchée, elle est ralentie pendant 3 secondes : elle passe à 30\,\% de sa vitesse et devient cyan, pour que le joueur voie l'effet. J'ai ajouté une action \texttt{Slow} dans le fichier \emph{Input Actions}, branchée exactement comme le tir du code fourni.
+
+Le ralentissement est géré avec une heure de fin plutôt qu'avec un compteur :
+
+\begin{lstlisting}
+public void Slow(float duration)
+{
+    slowEndTime = Time.time + duration;
+}
+
+public bool IsSlowed()
+{
+    return Time.time < slowEndTime;
+}
+\end{lstlisting}
+
+Si on ralentit une créature déjà ralentie, la durée repart simplement de zéro.
+
+\subsection{Étape 6 : les défis et le score}
+Le script \texttt{ChallengeManager} tire un défi au hasard parmi deux types :
+\begin{itemize}
+  \item \og Tue X créatures \fg{} ;
+  \item \og Tue X créatures ralenties \fg{}, qui oblige à utiliser la capacité spéciale.
+\end{itemize}
+X est un nombre au hasard entre 2 et 5. Quand une créature meurt, le script \texttt{Health} prévient le \texttt{ChallengeManager} et lui indique si la créature était ralentie. Quand l'objectif est atteint, le score augmente de 1 et un nouveau défi est généré. C'est la \og recette \fg{} demandée par le sujet : le jeu donne une consigne et vérifie qu'elle est respectée.
+
+\subsection{Étape 7 : le HUD et le Game Over}
+Le script \texttt{HUD} met à jour trois textes à chaque frame : la vie, le score et le défi en cours avec sa progression. Quand la vie du joueur tombe à 0, il affiche un panneau \og Game Over \fg{}, met le jeu en pause avec \texttt{Time.timeScale = 0} et libère la souris. Le bouton \og Rejouer \fg{} appelle la méthode publique \texttt{Restart()} grâce à son événement \emph{OnClick}, comme vu en cours, et recharge la scène.
+
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.7\textwidth]{hud.png}
+%   \caption{Le HUD pendant une partie}
+% \end{figure}
+
+\subsection{Étape 8 : les modèles 3D}
+% TODO : à compléter quand l'étape sera faite (sites utilisés, modèles choisis, problèmes d'import).
+\emph{À compléter.}
+
+% =====================================================================
+\section{Notions du cours utilisées}
+\begin{table}[H]
+\centering
+\begin{tabular}{lp{11cm}}
+\toprule
+\textbf{Notion} & \textbf{Utilisation dans le projet} \\
+\midrule
+Raycast & Tir et capacité spéciale depuis le centre de l'écran \\
+Prefabs & Le joueur et les créatures, instanciées par le spawner \\
+Navigation & NavMesh calculée sur l'arène, créatures avec un \texttt{NavMeshAgent} \\
+UI & Viseur, HUD (vie, score, défi), panneau Game Over avec un bouton \\
+Import d'assets 3D & \emph{À compléter (étape 8)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =====================================================================
+\section{Problèmes rencontrés et solutions}
+
+\subsection{Le tir comptait double}
+Après avoir lancé le jeu deux fois de suite, un seul tir retirait deux points de vie (la cible passait de 2 à 0 PV). L'abonnement à l'événement de tir de l'Input System (\texttt{fire.action.performed += FirePressed}) n'était jamais retiré. Comme le rechargement du domaine est désactivé au lancement du mode Play, l'ancien abonnement restait actif d'une partie à l'autre. Pour corriger ce problème, j'ai désabonné l'événement dans \texttt{OnDestroy()}. \texttt{Health} ignore aussi les coups reçus quand l'objet est déjà mort, car \texttt{Destroy} n'agit qu'à la fin de la frame.
+
+\subsection{Le prefab du joueur refusait de s'enregistrer}
+Unity affichait l'erreur \og You are trying to save a Prefab with a missing script \fg{}. Le prefab \texttt{Player} fourni contenait un composant dont le script n'était pas dans le package. J'ai retiré ce composant, qui ne faisait rien.
+
+\subsection{Des milliers d'erreurs dans la Console}
+Quand une créature n'est pas posée sur la NavMesh, \texttt{SetDestination} provoque une erreur à chaque frame, ce qui faisait plus de 999 erreurs en quelques secondes et ralentissait fortement l'ordinateur. J'ai ajouté une vérification au démarrage : si \texttt{agent.isOnNavMesh} est faux, la créature affiche un seul avertissement et désactive son script.
+
+\subsection{Une scène perdue}
+L'ordinateur s'est éteint alors que la scène n'était pas enregistrée. Unity avait créé une copie de secours dans le dossier \texttt{Assets/\_Recovery}, ce qui m'a permis de la récupérer. Depuis, j'enregistre régulièrement avec Ctrl+S.
+
+% TODO : ajouter les problèmes des étapes suivantes.
+
+% =====================================================================
+\section{Conclusion}
+% TODO : à compléter à la fin du projet (ce qui marche, ce qui pourrait être amélioré, ce que j'ai appris).
+\emph{À compléter.}
+
+\end{document}

@@ -7,3 +7,11 @@
 /Assets/_Recovery/
 /Assets/_Recovery.meta
 !/README.md
+!/rapport/
+/rapport/*.aux
+/rapport/*.log
+/rapport/*.out
+/rapport/*.toc
+/rapport/*.synctex.gz
+/rapport/*.fdb_latexmk
+/rapport/*.fls
