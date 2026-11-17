@@ -35,6 +35,7 @@ public class ChallengeManager : MonoBehaviour
         // Pour le défi "ralenties", une créature normale ne compte pas
         if (challengeType == 1 && wasSlowed == false)
         {
+            Debug.Log("Créature non ralentie : elle ne compte pas pour ce défi");
             return;
         }
 

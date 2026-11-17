@@ -416,7 +416,7 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
 
 \textbf{Limites et problèmes connus.}
 \begin{itemize}
-  \item \textbf{L'état ralenti est vérifié au moment de la mort.} Si le ralentissement se termine juste avant le coup fatal, la créature ne compte pas pour un défi \og ralenties \fg{}. C'est logique, mais ça peut surprendre le joueur. Il n'y a pas de message pour le prévenir.
+  \item \textbf{L'état ralenti est vérifié au moment de la mort.} Si le ralentissement se termine juste avant le coup fatal, la créature ne compte pas pour un défi \og ralenties \fg{}. C'est logique, mais ça peut surprendre le joueur. Un message le signale dans la Console, mais il n'apparaît pas à l'écran.
   \item \textbf{Le même défi peut revenir deux fois de suite}, puisque le tirage est indépendant du défi précédent.
   \item \textbf{Le score ne dépend pas de la difficulté.} Un défi à 5 créatures rapporte autant qu'un défi à 2.
   \item \textbf{Les types de défi sont des nombres.} \texttt{0} et \texttt{1} ne sont pas parlants. Avec plus de types, un \texttt{switch} (vu en cours) ou une énumération rendrait le code plus lisible.
@@ -500,6 +500,18 @@ private bool CanSeePlayer(Vector3 playerCenter)
     return false;
 }
 \end{lstlisting}
+
+\subsection{Le défi semblait bloqué}
+Pendant les tests, le défi affiché, \og Tue 3 créatures \fg{}, ne progressait jamais, même après plusieurs créatures tuées. En réalité, le texte du défi était coupé. La zone de texte faisait 160 pixels de large, et le composant \texttt{Text} passe à la ligne quand le texte dépasse, puis cache ce qui ne rentre plus en hauteur. Le texte complet était \og Tue 3 créatures \textbf{ralenties} (0/3) \fg{}. Les créatures tuées sans être ralenties ne comptaient donc pas, ce qui était le comportement voulu, mais le joueur ne pouvait pas le voir.
+
+Pour corriger ce problème :
+\begin{itemize}
+  \item j'ai élargi les textes du HUD et réglé \emph{Horizontal Overflow} sur \emph{Overflow}, pour que le texte ne soit plus jamais coupé ;
+  \item le \texttt{ChallengeManager} écrit maintenant un message dans la Console quand une créature tuée ne compte pas pour le défi.
+\end{itemize}
+Un deuxième problème est apparu après l'élargissement : les textes sortaient de l'écran par la gauche. Le \emph{pivot} d'un élément d'UI, c'est-à-dire son point de référence, est par défaut au centre du rectangle. Avec \emph{Pos X} = 120 et une largeur de 500 pixels, le rectangle commençait donc à $120 - 250 = -130$ pixels, hors de l'écran. J'ai placé le pivot sur le bord gauche (\emph{Pivot X} = 0) et réglé \emph{Pos X} à 20. Le texte s'étend maintenant uniquement vers la droite à partir du bord de l'écran.
+
+C'est un bon exemple d'un problème d'interface qui ressemblait à un bug dans la logique du jeu.
 
 \subsection{Une scène perdue}
 L'ordinateur s'est éteint alors que la scène n'était pas enregistrée. Unity avait créé une copie de secours dans le dossier \texttt{Assets/\_Recovery}, ce qui m'a permis de la récupérer. Depuis, j'enregistre régulièrement avec Ctrl+S.
