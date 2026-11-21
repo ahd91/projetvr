@@ -181,9 +181,25 @@ Le script \texttt{HUD} met à jour trois textes à chaque frame : la vie, le sco
 %   \caption{Le HUD pendant une partie}
 % \end{figure}
 
-\subsection{Étape 8 : les modèles 3D}
-% TODO : à compléter quand l'étape sera faite (sites utilisés, modèles choisis, problèmes d'import).
-\emph{À compléter.}
+\subsection{Changement de conception : un jeu jour/nuit}
+Une fois cette première version terminée, j'ai voulu rendre le jeu plus riche et plus beau. J'ai importé deux packs gratuits de l'Unity Asset Store : \emph{Christmas Pack FREE} (ithappy) et \emph{Poly Halloween Pack} (polyperfect). Le jeu alterne maintenant deux phases :
+\begin{itemize}
+  \item \textbf{le jour, c'est Noël} : des cadeaux ensorcelés s'enfuient, et il faut les ralentir, les attraper et les déposer sous le sapin ;
+  \item \textbf{la nuit, c'est Halloween} : il faut survivre et protéger le sapin contre des chasseurs, qui attaquent le joueur, et des voleurs, qui emportent les cadeaux.
+\end{itemize}
+On gagne avec 10 cadeaux sous le sapin. Plus il y a de cadeaux, plus les nuits sont difficiles, pour qu'une partie dure environ 4 à 5 cycles. Un défi de nuit, tiré au hasard, est récompensé par un cadeau doré le lendemain.
+
+\subsection{Étape A : le cycle jour/nuit}
+Le script \texttt{DayNightManager} alterne les deux phases avec un chrono, sur le même principe que les cooldowns : il retient l'heure de fin de la phase (\texttt{phaseEndTime}) et la compare à \texttt{Time.time}. Au changement de phase, il modifie l'ambiance grâce à \texttt{RenderSettings}, qui donne accès aux réglages d'éclairage de la scène :
+\begin{itemize}
+  \item la couleur et l'intensité de la lumière directionnelle (le soleil) ;
+  \item le ciel (\texttt{RenderSettings.skybox}) : le skybox du pack de Noël le jour, celui du pack Halloween la nuit ;
+  \item le brouillard et la lumière ambiante, activés et réduits la nuit ;
+  \item un \emph{Global Volume} de post-traitement (bloom, vignette, couleurs froides), activé seulement la nuit avec \texttt{SetActive}.
+\end{itemize}
+Après un changement de ciel, \texttt{DynamicGI.UpdateEnvironment()} recalcule la lumière ambiante. Sans cet appel, la scène garderait l'éclairage du ciel précédent. Enfin, le spawner de monstres n'est actif que la nuit (\texttt{spawner.enabled}), et les monstres encore présents sont détruits au lever du jour. Le HUD affiche la phase en cours et le temps restant.
+
+% TODO : étapes B à H à compléter au fur et à mesure.
 
 % =====================================================================
 \section{Notions du cours utilisées}
@@ -197,7 +213,7 @@ Raycast & Tir et capacité spéciale depuis le centre de l'écran, vérification
 Prefabs & Le joueur et les créatures, instanciées par le spawner \\
 Navigation & NavMesh calculée sur l'arène, créatures avec un \texttt{NavMeshAgent} \\
 UI & Viseur, HUD (vie, score, défi), panneau Game Over avec un bouton \\
-Import d'assets 3D & \emph{À compléter (étape 8)} \\
+Import d'assets 3D & \emph{Christmas Pack FREE} (ithappy) et \emph{Poly Halloween Pack} (polyperfect), Unity Asset Store \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -423,6 +439,45 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
 \end{itemize}
 
 % ---------------------------------------------------------------------
+\subsection{DayNightManager}
+
+\textbf{Rôle.} Alterner le jour (Noël) et la nuit (Halloween), et changer l'ambiance de la scène en conséquence.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llp{6cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
+\midrule
+\texttt{dayDuration}, \texttt{nightDuration} & 60 s & durée de chaque phase \\
+\texttt{sun} & Directional Light & lumière modifiée selon la phase \\
+\texttt{dayColor}, \texttt{nightColor} & blanc chaud, bleu & couleur du soleil \\
+\texttt{dayIntensity}, \texttt{nightIntensity} & 1 et 0,3 & intensité du soleil \\
+\texttt{daySkybox}, \texttt{nightSkybox} & Skybox\_8, M\_Skybox\_Night & ciel de chaque phase \\
+\texttt{nightVolume} & NightVolume & post-traitement de nuit \\
+\texttt{fogColor}, \texttt{nightAmbient} & bleu nuit, 0,4 & brouillard et lumière ambiante la nuit \\
+\texttt{spawner} & Spawner & actif uniquement la nuit \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fonctionnement.}
+\begin{itemize}
+  \item \texttt{Update()} compare \texttt{Time.time} à \texttt{phaseEndTime}. Quand la phase est terminée, il appelle \texttt{StartDay()} ou \texttt{StartNight()}.
+  \item Ces deux méthodes règlent la lumière, le ciel, le brouillard, la lumière ambiante et le volume, puis activent ou désactivent le spawner. \texttt{StartDay()} détruit aussi les créatures restantes, qu'elle retrouve par leur Tag.
+  \item \texttt{IsNight()} et \texttt{GetTimeLeft()} permettent aux autres scripts, comme le HUD, de connaître la phase et le temps restant.
+\end{itemize}
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{La transition est brutale.} La lumière et le ciel changent d'un coup. Un fondu progressif, par exemple avec \texttt{Color.Lerp} sur quelques secondes, serait plus joli.
+  \item \textbf{Le soleil ne bouge pas.} Seules sa couleur et son intensité changent. Faire tourner la lumière au cours de la journée donnerait des ombres qui évoluent.
+  \item \textbf{Les créatures disparaissent d'un coup à l'aube}, sans effet visuel. Un nuage de fumée (particules du pack de Noël) est prévu à l'étape H.
+  \item \textbf{Toutes les références doivent être remplies.} Si une case de l'Inspector est vide (le soleil, un ciel, le volume ou le spawner), le changement de phase provoque une erreur.
+  \item \textbf{Les réglages de brouillard sont partagés.} Le mode et la densité viennent de la fenêtre \emph{Lighting}, mais la couleur vient du script. Une partie du réglage est donc dans l'éditeur et l'autre dans le code.
+\end{itemize}
+
+% ---------------------------------------------------------------------
 \subsection{HUD}
 
 \textbf{Rôle.} Afficher la vie, le score et le défi, et gérer l'écran de fin.
@@ -512,6 +567,15 @@ Pour corriger ce problème :
 Un deuxième problème est apparu après l'élargissement : les textes sortaient de l'écran par la gauche. Le \emph{pivot} d'un élément d'UI, c'est-à-dire son point de référence, est par défaut au centre du rectangle. Avec \emph{Pos X} = 120 et une largeur de 500 pixels, le rectangle commençait donc à $120 - 250 = -130$ pixels, hors de l'écran. J'ai placé le pivot sur le bord gauche (\emph{Pivot X} = 0) et réglé \emph{Pos X} à 20. Le texte s'étend maintenant uniquement vers la droite à partir du bord de l'écran.
 
 C'est un bon exemple d'un problème d'interface qui ressemblait à un bug dans la logique du jeu.
+
+\subsection{Un brouillard de nuit peu convaincant}
+Le brouillard s'activait bien la nuit, mais le résultat ne ressemblait pas à une nuit d'Halloween. J'ai identifié trois causes :
+\begin{itemize}
+  \item sur un sol gris et vide, le brouillard ne peut que délaver l'image de façon uniforme ;
+  \item le ciel n'est jamais touché par le brouillard dans Unity, et la couleur choisie ne correspondait pas à l'horizon du ciel de nuit, ce qui créait une coupure nette ;
+  \item la lumière ambiante, qui vient du ciel, restait aussi forte que le jour.
+\end{itemize}
+Pour améliorer le rendu, le script règle maintenant la couleur du brouillard sur un bleu proche de l'horizon de nuit, baisse la lumière ambiante (\texttt{RenderSettings.ambientIntensity}) et active un volume de post-traitement fourni par le pack Halloween. Il faut aussi cocher \emph{Post Processing} sur la caméra du joueur pour que le volume ait un effet. La vraie ambiance viendra du décor : les lumières chaudes des citrouilles et des lanternes, mises en valeur par le bloom, qui contrastent avec la nuit froide.
 
 \subsection{Une scène perdue}
 L'ordinateur s'est éteint alors que la scène n'était pas enregistrée. Unity avait créé une copie de secours dans le dossier \texttt{Assets/\_Recovery}, ce qui m'a permis de la récupérer. Depuis, j'enregistre régulièrement avec Ctrl+S.

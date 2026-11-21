@@ -48,7 +48,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | `Health.cs` | Gère les points de vie. Utilisé par les créatures et par le joueur. |
 | `Creature.cs` | La créature suit le joueur sur la NavMesh et lui fait des dégâts quand elle est proche, avec un temps de recharge (cooldown). Elle peut être ralentie : elle passe à 30 % de sa vitesse et devient cyan pendant 3 s. |
 | `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), avec un maximum de créatures en même temps. |
-| `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel et le brouillard, et il n'active le spawner de monstres que la nuit. |
+| `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel, le brouillard, la lumière ambiante et le post-traitement de nuit, et il n'active le spawner de monstres que la nuit. |
 | `HUD.cs` | Affiche la vie, le score, le défi, et la phase avec le temps restant. À la mort du joueur, il affiche le Game Over, met le jeu en pause et libère la souris. Le bouton Rejouer recharge la scène. |
 | `ChallengeManager.cs` | Ancien système de défis (« tue X créatures »), qui sera remplacé par le défi de nuit à l'étape G. |
 
@@ -66,7 +66,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 
 **Version 2 : le jeu jour/nuit (en cours)**
 
-- [ ] A. Cycle jour/nuit : chrono, lumière, ciel, brouillard, monstres uniquement la nuit
+- [x] A. Cycle jour/nuit : chrono, lumière, ciel, brouillard, monstres uniquement la nuit
 - [ ] B. Le sapin : zone de dépôt, compteur de cadeaux et victoire à 10
 - [ ] C. Les cadeaux farceurs : ils fuient le joueur ; on les ralentit, on les ramasse et on les dépose
 - [ ] D. L'arme double : ralentisseur le jour, canon la nuit avec un temps de recharge
@@ -94,4 +94,5 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - **On pouvait tirer pendant le Game Over.** `Time.timeScale = 0` ne met pas en pause les événements de l'Input System. Solution : `FirePressed` et `SlowPressed` s'arrêtent tout de suite quand `Time.timeScale == 0`.
 - **Les créatures frappaient à travers les murs.** L'attaque ne vérifiait que la distance. Solution : avant de frapper, la créature lance un raycast vers le centre du joueur et ne frappe que si le premier objet touché est bien le joueur.
 - **Le défi semblait bloqué.** Le texte du défi était coupé à l'écran : « ralenties (0/3) » était caché, et les créatures tuées sans être ralenties ne comptaient pas, ce qui était voulu. Solution : élargir les textes, régler Horizontal Overflow sur Overflow, mettre le pivot à gauche (Pivot X = 0), et afficher un message dans la Console quand une créature ne compte pas.
+- **Le brouillard de nuit n'était pas convaincant.** Sur un sol vide, le brouillard délave seulement l'image, le ciel n'est pas touché par le brouillard, et la lumière ambiante restait celle du jour. Solution : une couleur de brouillard proche de l'horizon de nuit, une lumière ambiante plus faible la nuit, et le volume de post-traitement du pack Halloween (il faut cocher Post Processing sur la caméra).
 - **La scène a été perdue après une extinction du PC.** Unity n'enregistre pas les scènes automatiquement. Solution : récupérer la scène depuis `Assets/_Recovery`, puis enregistrer régulièrement avec Ctrl+S.

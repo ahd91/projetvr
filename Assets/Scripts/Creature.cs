@@ -10,11 +10,14 @@ public class Creature : MonoBehaviour
     [SerializeField] private float attackRange = 2f;     // distance à partir de laquelle elle frappe
     [SerializeField] private float attackCooldown = 1f;  // secondes entre deux coups
 
+    [Header("Visuel")]
+    [Tooltip("Le Renderer du modèle 3D (à glisser depuis le prefab). C'est lui qui devient cyan quand la créature est ralentie.")]
+    [SerializeField] private Renderer rend;
+
     [Header("Ralentissement")]
     [SerializeField] private float slowFactor = 0.3f;    // 0.3 = 30 % de la vitesse normale
 
     private NavMeshAgent agent;
-    private Renderer rend;
     private GameObject player;
     private Health playerHealth;
 
@@ -26,9 +29,17 @@ public class Creature : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        rend = GetComponent<Renderer>();
         normalSpeed = agent.speed;
-        normalColor = rend.material.color;
+
+        // Si aucun Renderer n'est glissé dans l'Inspector, on prend celui de l'objet lui-même (la capsule)
+        if (rend == null)
+        {
+            rend = GetComponent<Renderer>();
+        }
+        if (rend != null)
+        {
+            normalColor = rend.material.color;
+        }
 
         // Le joueur est trouvé par son Tag (il faut mettre le Tag "Player" sur le prefab Player)
         player = GameObject.FindWithTag("Player");
@@ -57,12 +68,18 @@ public class Creature : MonoBehaviour
         if (IsSlowed())
         {
             agent.speed = normalSpeed * slowFactor;
-            rend.material.color = Color.cyan;
+            if (rend != null)
+            {
+                rend.material.color = Color.cyan;
+            }
         }
         else
         {
             agent.speed = normalSpeed;
-            rend.material.color = normalColor;
+            if (rend != null)
+            {
+                rend.material.color = normalColor;
+            }
         }
 
         // Suivre le joueur

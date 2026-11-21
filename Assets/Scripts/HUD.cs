@@ -9,6 +9,7 @@ public class HUD : MonoBehaviour
     [SerializeField] private Text healthText;
     [SerializeField] private Text scoreText;
     [SerializeField] private Text challengeText;
+    [SerializeField] private Text phaseText;
 
     [Header("Game over")]
     [SerializeField] private GameObject gameOverPanel;
@@ -16,6 +17,7 @@ public class HUD : MonoBehaviour
     [Header("Références (glisser depuis la Hierarchy)")]
     [SerializeField] private Health playerHealth;
     [SerializeField] private ChallengeManager challengeManager;
+    [SerializeField] private DayNightManager dayNightManager;
 
     void Start()
     {
@@ -27,6 +29,17 @@ public class HUD : MonoBehaviour
         healthText.text = "Vie : " + playerHealth.GetHp();
         scoreText.text = "Score : " + challengeManager.GetScore();
         challengeText.text = "Défi : " + challengeManager.GetChallengeText();
+
+        // Phase en cours + secondes restantes (arrondies au-dessus pour ne jamais afficher 0 trop tôt)
+        int secondsLeft = Mathf.CeilToInt(dayNightManager.GetTimeLeft());
+        if (dayNightManager.IsNight())
+        {
+            phaseText.text = "Nuit d'Halloween : encore " + secondsLeft + " s";
+        }
+        else
+        {
+            phaseText.text = "Jour de Noël : encore " + secondsLeft + " s";
+        }
 
         // Le joueur est mort et le game over n'est pas encore affiché
         if (playerHealth.GetHp() <= 0 && gameOverPanel.activeSelf == false)
