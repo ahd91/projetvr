@@ -24,7 +24,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | Clic gauche | Tirer |
 | Clic droit (jour) | Ralentisseur : ralentit le cadeau visé *(à venir : étape D)* |
 | Clic droit (nuit) | Canon : un tir puissant avec un temps de recharge *(à venir : étape D)* |
-| E | Ramasser ou déposer un cadeau *(à venir : étape C)* |
+| E | Ramasser ou déposer un cadeau (pour l'instant : déposer un cadeau de test dans la zone du sapin) |
 | Échap | Libérer la souris |
 
 ## Notions du sujet
@@ -49,7 +49,8 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | `Creature.cs` | La créature suit le joueur sur la NavMesh et lui fait des dégâts quand elle est proche, avec un temps de recharge (cooldown). Elle peut être ralentie : elle passe à 30 % de sa vitesse et devient cyan pendant 3 s. |
 | `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), avec un maximum de créatures en même temps. |
 | `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel, le brouillard, la lumière ambiante et le post-traitement de nuit, et il n'active le spawner de monstres que la nuit. |
-| `HUD.cs` | Affiche la vie, le score, le défi, et la phase avec le temps restant. À la mort du joueur, il affiche le Game Over, met le jeu en pause et libère la souris. Le bouton Rejouer recharge la scène. |
+| `ChristmasTree.cs` | La zone de dépôt au pied du sapin (un trigger). Il compte les cadeaux, affiche autant de modèles de cadeaux sous le sapin, et permet aux voleurs d'en retirer un. |
+| `HUD.cs` | Affiche la vie, le score, le défi, la phase avec le temps restant, et le nombre de cadeaux. À 10 cadeaux, il affiche l'écran de victoire. À la mort du joueur, il affiche le Game Over, met le jeu en pause et libère la souris. Le bouton Rejouer recharge la scène. |
 | `ChallengeManager.cs` | Ancien système de défis (« tue X créatures »), qui sera remplacé par le défi de nuit à l'étape G. |
 
 ## Avancement
@@ -67,7 +68,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 **Version 2 : le jeu jour/nuit (en cours)**
 
 - [x] A. Cycle jour/nuit : chrono, lumière, ciel, brouillard, monstres uniquement la nuit
-- [ ] B. Le sapin : zone de dépôt, compteur de cadeaux et victoire à 10
+- [x] B. Le sapin : zone de dépôt, compteur de cadeaux et victoire à 10
 - [ ] C. Les cadeaux farceurs : ils fuient le joueur ; on les ralentit, on les ramasse et on les dépose
 - [ ] D. L'arme double : ralentisseur le jour, canon la nuit avec un temps de recharge
 - [ ] E. Les voleurs : ils vont au sapin, prennent un cadeau et s'enfuient ; un voleur tué rend le cadeau

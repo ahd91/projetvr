@@ -199,6 +199,13 @@ Le script \texttt{DayNightManager} alterne les deux phases avec un chrono, sur l
 \end{itemize}
 Après un changement de ciel, \texttt{DynamicGI.UpdateEnvironment()} recalcule la lumière ambiante. Sans cet appel, la scène garderait l'éclairage du ciel précédent. Enfin, le spawner de monstres n'est actif que la nuit (\texttt{spawner.enabled}), et les monstres encore présents sont détruits au lever du jour. Le HUD affiche la phase en cours et le temps restant.
 
+\subsection{Étape B : le sapin et le compteur de cadeaux}
+Le sapin vient du pack de Noël. À son pied, j'ai ajouté un objet vide \texttt{GiftZone} avec un \emph{Sphere Collider} en mode \textbf{Is Trigger} et le script \texttt{ChristmasTree}. Un trigger ne bloque pas les objets : il signale seulement qu'un objet entre ou sort de sa zone, avec les fonctions \texttt{OnTriggerEnter} et \texttt{OnTriggerExit} (notion d'interaction logique du cours V). Le script retient ainsi si le joueur se trouve au pied du sapin.
+
+Les cadeaux déposés sont visibles : dix modèles de cadeaux sont posés sous le sapin et désactivés au départ. Quand il y a $n$ cadeaux, le script active les $n$ premiers avec une boucle \texttt{for} et \texttt{SetActive}. Le HUD affiche le compteur. À 10 cadeaux, il affiche un écran de victoire et met le jeu en pause, sur le même principe que le Game Over.
+
+Pour tester cette étape avant d'avoir des cadeaux à ramasser, la nouvelle touche \textbf{E} (une action \texttt{Interact} ajoutée dans l'Input System) ajoutait directement un cadeau quand le joueur était dans la zone.
+
 % TODO : étapes B à H à compléter au fur et à mesure.
 
 % =====================================================================
@@ -282,6 +289,7 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
   \item Dans \texttt{Start()}, les actions sont activées, et les fonctions \texttt{FirePressed} et \texttt{SlowPressed} sont abonnées aux événements \texttt{performed}. Elles sont désabonnées dans \texttt{OnDestroy()}.
   \item \texttt{ShootRay(out RaycastHit hit)} lance un rayon depuis le centre de l'écran et renvoie \texttt{true} si un objet est touché. Le tir et la capacité utilisent tous les deux cette fonction.
   \item Le tir cherche un composant \texttt{Health} sur l'objet touché. La capacité cherche un composant \texttt{Creature}.
+  \item La touche E (action \texttt{Interact}) appelle \texttt{InteractPressed}, qui interagit avec le sapin quand le joueur est dans sa zone. La référence au sapin (\texttt{tree}) est glissée dans l'Inspector.
   \item Si le jeu est en pause (\texttt{Time.timeScale == 0}, pendant le Game Over), \texttt{FirePressed} et \texttt{SlowPressed} s'arrêtent tout de suite.
 \end{itemize}
 
@@ -478,6 +486,37 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
 \end{itemize}
 
 % ---------------------------------------------------------------------
+\subsection{ChristmasTree}
+
+\textbf{Rôle.} Gérer la zone de dépôt au pied du sapin, compter les cadeaux et les afficher.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llp{7cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
+\midrule
+\texttt{giftsToWin} & 10 & nombre de cadeaux pour gagner \\
+\texttt{giftVisuals} & 10 modèles & cadeaux affichés sous le sapin \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fonctionnement.}
+\begin{itemize}
+  \item Le script est placé sur un objet qui a un collider en mode \emph{Is Trigger}. \texttt{OnTriggerEnter} et \texttt{OnTriggerExit} mettent à jour \texttt{playerInZone} quand l'objet qui entre ou sort a le Tag \texttt{Player}. Le \emph{CharacterController} du joueur suffit pour déclencher ces événements.
+  \item \texttt{AddGift(int value)} ajoute des cadeaux. Le paramètre permet d'ajouter 2 cadeaux d'un coup pour le cadeau doré. \texttt{RemoveGift()} en retire un et renvoie \texttt{false} s'il n'y en avait plus : elle servira aux voleurs.
+  \item \texttt{UpdateVisuals()} parcourt le tableau \texttt{giftVisuals} et n'active que les cases dont l'indice est inférieur au nombre de cadeaux.
+\end{itemize}
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{L'affichage est limité à la taille du tableau.} Au-delà de 10 cadeaux, par exemple avec un cadeau doré déposé à 9, le compteur continue de monter, mais aucun nouveau modèle n'apparaît. Comme la partie se termine à 10, ce n'est pas gênant.
+  \item \textbf{Le compteur peut dépasser l'objectif.} Avec un cadeau doré déposé à 9, on arrive à 11. La victoire se déclenche quand même, car le HUD teste \texttt{>=}.
+  \item \textbf{L'état de la zone peut être faux en cas de téléportation.} Si le joueur était déplacé directement hors de la zone (sans la traverser), \texttt{OnTriggerExit} pourrait ne pas être appelé. Le joueur ne fait que marcher dans ce jeu, donc le cas ne se présente pas.
+\end{itemize}
+
+% ---------------------------------------------------------------------
 \subsection{HUD}
 
 \textbf{Rôle.} Afficher la vie, le score et le défi, et gérer l'écran de fin.
@@ -497,7 +536,8 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
 
 \textbf{Fonctionnement.}
 \begin{itemize}
-  \item À chaque frame, les trois textes sont mis à jour.
+  \item À chaque frame, les textes sont mis à jour : la vie, le score, le défi, la phase avec le temps restant, et le nombre de cadeaux sous le sapin.
+  \item Quand le nombre de cadeaux atteint l'objectif, le HUD affiche l'écran de victoire et met le jeu en pause, comme pour le Game Over.
   \item Quand \texttt{playerHealth.GetHp()} vaut 0 et que le panneau n'est pas encore affiché, le HUD :
   \begin{itemize}
     \item affiche le panneau ;

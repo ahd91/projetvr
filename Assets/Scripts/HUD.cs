@@ -10,18 +10,24 @@ public class HUD : MonoBehaviour
     [SerializeField] private Text scoreText;
     [SerializeField] private Text challengeText;
     [SerializeField] private Text phaseText;
+    [SerializeField] private Text giftText;
 
     [Header("Game over")]
     [SerializeField] private GameObject gameOverPanel;
+
+    [Header("Victoire")]
+    [SerializeField] private GameObject victoryPanel;
 
     [Header("Références (glisser depuis la Hierarchy)")]
     [SerializeField] private Health playerHealth;
     [SerializeField] private ChallengeManager challengeManager;
     [SerializeField] private DayNightManager dayNightManager;
+    [SerializeField] private ChristmasTree tree;
 
     void Start()
     {
         gameOverPanel.SetActive(false);
+        victoryPanel.SetActive(false);
     }
 
     void Update()
@@ -39,6 +45,17 @@ public class HUD : MonoBehaviour
         else
         {
             phaseText.text = "Jour de Noël : encore " + secondsLeft + " s";
+        }
+
+        giftText.text = "Cadeaux sous le sapin : " + tree.GetGiftCount() + " / " + tree.GetGiftsToWin();
+
+        // Assez de cadeaux et la victoire n'est pas encore affichée
+        if (tree.GetGiftCount() >= tree.GetGiftsToWin() && victoryPanel.activeSelf == false)
+        {
+            victoryPanel.SetActive(true);
+            Time.timeScale = 0;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
 
         // Le joueur est mort et le game over n'est pas encore affiché

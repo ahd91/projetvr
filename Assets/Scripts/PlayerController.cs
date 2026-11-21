@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private InputActionReference fire;
     [SerializeField] private InputActionReference jump;
     [SerializeField] private InputActionReference slow;
+    [SerializeField] private InputActionReference interact;
     
     [Header("GroundCheck")]
     [SerializeField] private float groundCheckDistance;
@@ -23,6 +24,10 @@ public class PlayerController : MonoBehaviour
     [Header("Weapon")]
     [SerializeField] private int damage = 1;
     [SerializeField] private float slowDuration = 3f; // secondes de ralentissement
+
+    [Header("Cadeaux")]
+    [Tooltip("Le sapin de la scène (glisser depuis la Hierarchy)")]
+    [SerializeField] private ChristmasTree tree;
 
     private CharacterController controller;
     private float rotationX = 0.0f;
@@ -59,6 +64,12 @@ public class PlayerController : MonoBehaviour
             slow.action.Enable();
         }
 
+        if (interact)
+        {
+            interact.action.performed += InteractPressed;
+            interact.action.Enable();
+        }
+
         controller = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
     }
@@ -74,6 +85,11 @@ public class PlayerController : MonoBehaviour
         if (slow)
         {
             slow.action.performed -= SlowPressed;
+        }
+
+        if (interact)
+        {
+            interact.action.performed -= InteractPressed;
         }
     }
 
@@ -123,6 +139,22 @@ public class PlayerController : MonoBehaviour
             {
                 creature.Slow(slowDuration);
             }
+        }
+    }
+
+    // Touche E : interagir avec le sapin
+    private void InteractPressed(InputAction.CallbackContext obj)
+    {
+        if (Time.timeScale == 0)
+        {
+            return;
+        }
+
+        // TEST ÉTAPE B : dans la zone du sapin, E ajoute un cadeau.
+        // À l'étape C, on ne pourra déposer que si on porte un cadeau.
+        if (tree != null && tree.IsPlayerInZone())
+        {
+            tree.AddGift(1);
         }
     }
 
