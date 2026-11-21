@@ -1,8 +1,13 @@
 # TP final ZZ2 – Réalité virtuelle
 
-Un FPS sur le thème Halloween à Noël, inspiré de *L'étrange Noël de Mr Jack*. Le héros affronte des vagues de créatures venues gâcher Noël. Son arme a une capacité spéciale, et un défi est généré pour lui à chaque partie.
+Un FPS sur le thème Halloween à Noël, inspiré de *L'étrange Noël de Mr Jack*. Le jeu alterne deux phases :
 
-Pour l'instant, la logique passe avant les graphismes : les créatures sont des capsules et le décor est fait de cubes.
+- **Le jour, c'est Noël.** Des cadeaux ensorcelés (les « cadeaux farceurs ») s'enfuient quand le joueur s'approche. Il faut les ralentir avec l'arme, les attraper et les déposer sous le sapin.
+- **La nuit, c'est Halloween.** Il faut survivre et protéger le sapin. Des **chasseurs** poursuivent le joueur, et des **voleurs** foncent sur le sapin, prennent un cadeau et s'enfuient avec. Un voleur tué avant de s'échapper rend le cadeau.
+
+**Victoire :** 10 cadeaux sous le sapin. **Défaite :** le joueur meurt. Plus il y a de cadeaux sous le sapin, plus les nuits sont dures. Une partie dure environ 4 à 5 cycles jour/nuit.
+
+Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cadeau cette nuit »). S'il est réussi, un **cadeau doré** apparaît le lendemain : il vaut 2 cadeaux, mais il est plus rapide que les autres.
 
 ## Ouvrir le projet
 
@@ -17,19 +22,23 @@ Pour l'instant, la logique passe avant les graphismes : les créatures sont des 
 | ZQSD | Se déplacer |
 | Souris | Regarder |
 | Clic gauche | Tirer |
-| Clic droit | Capacité spéciale : ralentir la créature visée |
+| Clic droit (jour) | Ralentisseur : ralentit le cadeau visé *(à venir : étape D)* |
+| Clic droit (nuit) | Canon : un tir puissant avec un temps de recharge *(à venir : étape D)* |
+| E | Ramasser ou déposer un cadeau *(à venir : étape C)* |
 | Échap | Libérer la souris |
 
 ## Notions du sujet
 
 | Notion | Où on la trouve |
 |---|---|
-| Raycast | Le tir part du centre de l'écran : `PlayerController.FirePressed` |
-| Prefabs | `Player` et `Creature`, la créature étant instanciée par le spawner |
-| Navigation | La NavMesh est calculée sur l'arène, et les créatures suivent le joueur avec un `NavMeshAgent` |
-| UI | Le viseur, le HUD (vie, score, défi en cours) et le panneau Game Over avec son bouton Rejouer |
-| Défi (« recette ») | `ChallengeManager` : quand une créature meurt, `Health` le prévient et lui dit si elle était ralentie |
-| Import d'assets 3D | Prévu à la fin |
+| Raycast | Le tir, la capacité spéciale, le ramassage des cadeaux, et la vérification qu'aucun mur ne sépare une créature du joueur |
+| Prefabs | Le joueur, les créatures (chasseurs et voleurs) et les cadeaux, instanciés par des spawners |
+| Navigation | La NavMesh de l'arène, avec trois comportements : poursuivre le joueur (chasseurs), aller au sapin (voleurs) et fuir le joueur (cadeaux farceurs) |
+| UI | Le viseur et le HUD (vie, phase et chrono, cadeaux, défi, recharge du canon), ainsi que les écrans Game Over et Victoire |
+| Capacité spéciale | Le clic droit : ralentisseur le jour, canon la nuit |
+| Défi (« recette ») | Le défi de nuit tiré au hasard, récompensé par le cadeau doré |
+| Import d'assets 3D | *Christmas Pack FREE* (ithappy) et *Poly Halloween Pack* (polyperfect), depuis l'Unity Asset Store |
+| Bonus | Les animations Walk et Run du Père Noël, reciblées sur les monstres humanoïdes, et des particules (fumée) |
 
 ## Scripts
 
@@ -38,11 +47,14 @@ Pour l'instant, la logique passe avant les graphismes : les créatures sont des 
 | `PlayerController.cs` | Gère le déplacement et la caméra. Le même raycast sert au tir (clic gauche : dégâts) et à la capacité (clic droit : ralentissement). Fourni par le prof, puis complété. |
 | `Health.cs` | Gère les points de vie. Utilisé par les créatures et par le joueur. |
 | `Creature.cs` | La créature suit le joueur sur la NavMesh et lui fait des dégâts quand elle est proche, avec un temps de recharge (cooldown). Elle peut être ralentie : elle passe à 30 % de sa vitesse et devient cyan pendant 3 s. |
-| `ChallengeManager.cs` | Tire un défi au hasard (« tue X créatures » ou « tue X créatures ralenties »), compte la progression et augmente le score de 1 quand le défi est réussi, puis génère un nouveau défi. |
-| `HUD.cs` | Affiche la vie, le score et le défi. À la mort du joueur, il affiche le Game Over, met le jeu en pause (`Time.timeScale = 0`) et libère la souris. Le bouton Rejouer recharge la scène. |
 | `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), avec un maximum de créatures en même temps. |
+| `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel et le brouillard, et il n'active le spawner de monstres que la nuit. |
+| `HUD.cs` | Affiche la vie, le score, le défi, et la phase avec le temps restant. À la mort du joueur, il affiche le Game Over, met le jeu en pause et libère la souris. Le bouton Rejouer recharge la scène. |
+| `ChallengeManager.cs` | Ancien système de défis (« tue X créatures »), qui sera remplacé par le défi de nuit à l'étape G. |
 
 ## Avancement
+
+**Version 1 : les bases (terminée)**
 
 - [x] 1. Scène de test : sol, murs, obstacles et NavMesh
 - [x] 2. Tir par raycast et points de vie
@@ -51,7 +63,27 @@ Pour l'instant, la logique passe avant les graphismes : les créatures sont des 
 - [x] 5. Capacité spéciale : ralentir (clic droit)
 - [x] 6. Défi, qui augmente le score et génère un nouveau défi
 - [x] 7. HUD (vie, score, défi en cours) et game over
-- [ ] 8. Vrais modèles 3D
+
+**Version 2 : le jeu jour/nuit (en cours)**
+
+- [ ] A. Cycle jour/nuit : chrono, lumière, ciel, brouillard, monstres uniquement la nuit
+- [ ] B. Le sapin : zone de dépôt, compteur de cadeaux et victoire à 10
+- [ ] C. Les cadeaux farceurs : ils fuient le joueur ; on les ralentit, on les ramasse et on les dépose
+- [ ] D. L'arme double : ralentisseur le jour, canon la nuit avec un temps de recharge
+- [ ] E. Les voleurs : ils vont au sapin, prennent un cadeau et s'enfuient ; un voleur tué rend le cadeau
+- [ ] F. La difficulté progressive selon le nombre de cadeaux
+- [ ] G. Le défi de nuit et sa récompense, le cadeau doré
+- [ ] H. L'habillage : modèles 3D, animations, décor de Noël et d'Halloween, particules
+
+### Équilibrage prévu (n = nombre de cadeaux sous le sapin)
+
+| Réglage | Formule |
+|---|---|
+| Créatures maximum la nuit | 3 + n |
+| Intervalle d'apparition | 4 s − 0,2 × n (minimum 1,5 s) |
+| Part de voleurs | 20 % + 5 % × n |
+| Vitesse des cadeaux farceurs | 3 + 0,2 × n |
+| Cadeaux par journée | environ 4 qui apparaissent, dont environ 3 récupérés |
 
 ## Problèmes rencontrés et solutions
 
