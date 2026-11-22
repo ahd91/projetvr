@@ -47,7 +47,8 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | `PlayerController.cs` | Gère le déplacement et la caméra. Le même raycast sert au tir (clic gauche), au ralentisseur (clic droit le jour), au canon à explosion de zone (clic droit la nuit, avec `Physics.OverlapSphere`) et au ramassage des cadeaux (E). Fourni par le prof, puis complété. |
 | `Health.cs` | Gère les points de vie. Utilisé par les créatures et par le joueur. |
 | `Creature.cs` | La créature suit le joueur sur la NavMesh et lui fait des dégâts quand elle est proche, avec un temps de recharge (cooldown). Elle peut être ralentie : elle passe à 30 % de sa vitesse et devient cyan pendant 3 s. |
-| `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), avec un maximum de créatures en même temps. |
+| `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), avec un maximum de créatures en même temps. Une partie des créatures sont des voleurs (`thiefChance`), les autres des chasseurs. |
+| `Thief.cs` | Le voleur va au sapin, prend un cadeau en entrant dans la zone trigger et s'enfuit vers son point d'apparition. S'il est tué ou s'il disparaît à l'aube, le cadeau revient (grâce à `OnDestroy`). |
 | `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel, le brouillard, la lumière ambiante et le post-traitement de nuit, et il n'active le spawner de monstres que la nuit. |
 | `ChristmasTree.cs` | La zone de dépôt au pied du sapin (un trigger). Il compte les cadeaux, affiche autant de modèles de cadeaux sous le sapin, et permet aux voleurs d'en retirer un. |
 | `Gift.cs` | Le cadeau farceur : il s'enfuit à l'opposé du joueur sur la NavMesh. Il peut être ralenti, et il ne peut être attrapé que dans ce cas. |
@@ -73,7 +74,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - [x] B. Le sapin : zone de dépôt, compteur de cadeaux et victoire à 10
 - [x] C. Les cadeaux farceurs : ils fuient le joueur ; on les ralentit, on les ramasse et on les dépose
 - [x] D. L'arme double : ralentisseur le jour, canon la nuit avec un temps de recharge
-- [ ] E. Les voleurs : ils vont au sapin, prennent un cadeau et s'enfuient ; un voleur tué rend le cadeau
+- [x] E. Les voleurs : ils vont au sapin, prennent un cadeau et s'enfuient ; un voleur tué rend le cadeau
 - [ ] F. La difficulté progressive selon le nombre de cadeaux
 - [ ] G. Le défi de nuit et sa récompense, le cadeau doré
 - [ ] H. L'habillage : modèles 3D, animations, décor de Noël et d'Halloween, particules
@@ -98,4 +99,5 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - **Les créatures frappaient à travers les murs.** L'attaque ne vérifiait que la distance. Solution : avant de frapper, la créature lance un raycast vers le centre du joueur et ne frappe que si le premier objet touché est bien le joueur.
 - **Le défi semblait bloqué.** Le texte du défi était coupé à l'écran : « ralenties (0/3) » était caché, et les créatures tuées sans être ralenties ne comptaient pas, ce qui était voulu. Solution : élargir les textes, régler Horizontal Overflow sur Overflow, mettre le pivot à gauche (Pivot X = 0), et afficher un message dans la Console quand une créature ne compte pas.
 - **Le brouillard de nuit n'était pas convaincant.** Sur un sol vide, le brouillard délave seulement l'image, le ciel n'est pas touché par le brouillard, et la lumière ambiante restait celle du jour. Solution : une couleur de brouillard proche de l'horizon de nuit, une lumière ambiante plus faible la nuit, et le volume de post-traitement du pack Halloween (il faut cocher Post Processing sur la caméra).
+- **Les voleurs ne volaient rien.** Ils devaient voler à moins de 3 m du centre du sapin, mais le sapin agrandi et le trou de la NavMesh autour du tronc les arrêtaient plus loin. Solution : le vol passe par la zone trigger du sapin, et le voleur a un Rigidbody en Is Kinematic (sans Rigidbody, Unity ne déclenche pas le trigger).
 - **La scène a été perdue après une extinction du PC.** Unity n'enregistre pas les scènes automatiquement. Solution : récupérer la scène depuis `Assets/_Recovery`, puis enregistrer régulièrement avec Ctrl+S.

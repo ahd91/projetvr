@@ -710,6 +710,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 369520820}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &195970896 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1270345106576592302, guid: f9432ef1dbf5ce944b47fb2397d4ba7e, type: 3}
+  m_PrefabInstance: {fileID: 848880473}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &201960905
 GameObject:
   m_ObjectHideFlags: 0
@@ -1077,6 +1082,16 @@ Transform:
   - {fileID: 54113073}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &403652535 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4533930734416848743, guid: 91e611e642f1ddd4096eb2a556cec535, type: 3}
+  m_PrefabInstance: {fileID: 1233578519}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &408003576 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 452850718894226819, guid: 0d09eddee9c925d478d60e512c0b364f, type: 3}
+  m_PrefabInstance: {fileID: 1565591184}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1430,7 +1445,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChristmasTree
   giftsToWin: 10
-  giftVisuals: []
+  giftVisuals:
+  - {fileID: 403652535}
+  - {fileID: 1312867879}
+  - {fileID: 1536946383}
+  - {fileID: 687716500}
+  - {fileID: 1368449329}
+  - {fileID: 408003576}
+  - {fileID: 1515530252}
+  - {fileID: 195970896}
+  - {fileID: 1296079114}
+  - {fileID: 1248925416}
 --- !u!135 &467343141
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -2118,6 +2143,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 369520820}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &687716500 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 452850718894226819, guid: 0d09eddee9c925d478d60e512c0b364f, type: 3}
+  m_PrefabInstance: {fileID: 2003018317}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &766642290
 GameObject:
   m_ObjectHideFlags: 0
@@ -2912,6 +2942,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3bee5d43780285348a05036e0b9c6fa8, type: 3}
+--- !u!1 &1248925416 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 452850718894226819, guid: 0d09eddee9c925d478d60e512c0b364f, type: 3}
+  m_PrefabInstance: {fileID: 438893970}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1294109687
 GameObject:
   m_ObjectHideFlags: 0
@@ -2941,8 +2976,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f32882daa0596a5429fcc47bbb6ae5bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DayNightManager
-  dayDuration: 15
-  nightDuration: 15
+  dayDuration: 25
+  nightDuration: 60
   sun: {fileID: 410087040}
   dayColor: {r: 1, g: 0.95, b: 0.85, a: 1}
   nightColor: {r: 0.4, g: 0.5, b: 1, a: 1}
@@ -2970,6 +3005,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1296079114 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1270345106576592302, guid: f9432ef1dbf5ce944b47fb2397d4ba7e, type: 3}
+  m_PrefabInstance: {fileID: 1875498262}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1312867879 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3508444086843874754, guid: 460635f8eb76ef24985c78c4adb4b354, type: 3}
+  m_PrefabInstance: {fileID: 1883053190}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1368449329 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4533930734416848743, guid: 91e611e642f1ddd4096eb2a556cec535, type: 3}
+  m_PrefabInstance: {fileID: 1675529802}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1399642137 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4269231397096293154, guid: 3d083df1ba6b40447b2cb35ae722f79b, type: 3}
@@ -3091,6 +3141,16 @@ Transform:
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1270345106576592302, guid: f9432ef1dbf5ce944b47fb2397d4ba7e, type: 3}
   m_PrefabInstance: {fileID: 1495251265}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1515530252 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3508444086843874754, guid: 460635f8eb76ef24985c78c4adb4b354, type: 3}
+  m_PrefabInstance: {fileID: 1862356213}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1536946383 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4533930734416848743, guid: 91e611e642f1ddd4096eb2a556cec535, type: 3}
+  m_PrefabInstance: {fileID: 877005711}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1565591184
 PrefabInstance:
@@ -4714,6 +4774,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   creaturePrefabs:
   - {fileID: 5546168940692377995, guid: 3c02757facc4cd04c903595f16ecee3d, type: 3}
+  thiefPrefabs:
+  - {fileID: 5546168940692377995, guid: 2dc9162ee33136e4eb9eb750c16dfeff, type: 3}
+  thiefChance: 0.7
   spawnPoints:
   - {fileID: 1756521870}
   - {fileID: 551779814}

@@ -242,6 +242,13 @@ foreach (Collider col in touched)
 \end{lstlisting}
 La recharge fonctionne comme les cooldowns des créatures : on retient l'heure à laquelle le canon sera prêt et on la compare à \texttt{Time.time}. Le HUD affiche l'arme active et le temps de recharge restant.
 
+\subsection{Étape E : les voleurs}
+La nuit, le spawner mélange maintenant deux types de monstres. À chaque apparition, \texttt{Random.value} tire un nombre entre 0 et 1. En dessous de \texttt{thiefChance} (30\,\%), c'est un voleur ; sinon, c'est un chasseur, qui attaque le joueur comme avant.
+
+Le voleur, avec le script \texttt{Thief}, ignore complètement le joueur. Il va au sapin, entre dans la zone trigger, prend un cadeau, puis s'enfuit vers son point d'apparition. S'il y arrive, il disparaît avec le cadeau. S'il est tué avant, le cadeau revient sous le sapin. Ce retour utilise \texttt{OnDestroy()}, une fonction qu'Unity appelle quand un objet est détruit, quelle que soit la raison. Elle couvre donc à la fois le voleur tué et le voleur qui disparaît au lever du jour. S'il n'y a plus de cadeau sous le sapin, le voleur repart les mains vides.
+
+Ma première version déclenchait le vol quand le voleur arrivait à moins de 3 m du centre du sapin, mais elle ne marchait pas (voir les problèmes rencontrés). Le vol est maintenant détecté par la zone trigger du sapin.
+
 % TODO : étapes B à H à compléter au fur et à mesure.
 
 % =====================================================================
@@ -599,6 +606,43 @@ Speed (NavMeshAgent) & 3 & vitesse normale (le joueur va à 5) \\
 \end{itemize}
 
 % ---------------------------------------------------------------------
+\subsection{Thief}
+
+\textbf{Rôle.} Le voleur va au sapin, prend un cadeau et s'enfuit avec.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llp{7cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
+\midrule
+\texttt{escapeRange} & 1,5 m & distance au point de départ pour s'échapper \\
+\texttt{carriedGiftVisual} & Present\_004 & cadeau affiché dans ses mains \\
+Speed (NavMeshAgent) & 3,5 & un peu plus rapide qu'un chasseur \\
+Max Hp (Health) & 2 & plus fragile qu'un chasseur \\
+\texttt{thiefChance} (Spawner) & 0,3 & part de voleurs parmi les apparitions \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fonctionnement.}
+\begin{itemize}
+  \item Au démarrage, le voleur retient sa position (\texttt{exitPoint}) et trouve le sapin par le nom de l'objet \texttt{GiftZone}.
+  \item Tant que \texttt{leaving} vaut \texttt{false}, il se dirige vers le sapin. Quand il entre dans la zone trigger, le \texttt{ChristmasTree} appelle \texttt{ReachTree()} : il essaie de prendre un cadeau avec \texttt{RemoveGift()}, puis passe \texttt{leaving} à \texttt{true}.
+  \item Ensuite, il se dirige vers \texttt{exitPoint}. S'il y arrive, il met \texttt{hasGift} à \texttt{false} (le cadeau est perdu) et se détruit.
+  \item \texttt{OnDestroy()} rend le cadeau au sapin si \texttt{hasGift} est encore vrai, c'est-à-dire si le voleur a été tué ou s'il a disparu au lever du jour.
+  \item Le prefab a un \emph{Rigidbody} en mode \emph{Is Kinematic}. Il sert uniquement à déclencher la zone trigger du sapin : la physique ne le déplace pas.
+\end{itemize}
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{Il fuit par le même chemin.} Son point de sortie est son point d'apparition, ce qui rend sa trajectoire prévisible. Choisir le point de sortie le plus éloigné du joueur le rendrait plus difficile à intercepter.
+  \item \textbf{Le sapin est trouvé par son nom}, comme le \texttt{ChallengeManager}. Si l'objet \texttt{GiftZone} est renommé, les voleurs ne bougent plus.
+  \item \textbf{\texttt{OnDestroy()} est aussi appelée au rechargement de la scène}, quand on clique sur \og Rejouer \fg{}. Le cadeau est alors ajouté à un sapin qui va lui-même être détruit, donc ça n'a aucun effet visible, mais c'est un comportement à connaître.
+  \item \textbf{Un voleur sans cadeau à voler repart sans rien faire.} Il pourrait par exemple s'en prendre au cadeau que porte le joueur.
+\end{itemize}
+
+% ---------------------------------------------------------------------
 \subsection{HUD}
 
 \textbf{Rôle.} Afficher la vie, le score et le défi, et gérer l'écran de fin.
@@ -698,6 +742,11 @@ Le brouillard s'activait bien la nuit, mais le résultat ne ressemblait pas à u
   \item la lumière ambiante, qui vient du ciel, restait aussi forte que le jour.
 \end{itemize}
 Pour améliorer le rendu, le script règle maintenant la couleur du brouillard sur un bleu proche de l'horizon de nuit, baisse la lumière ambiante (\texttt{RenderSettings.ambientIntensity}) et active un volume de post-traitement fourni par le pack Halloween. Il faut aussi cocher \emph{Post Processing} sur la caméra du joueur pour que le volume ait un effet. La vraie ambiance viendra du décor : les lumières chaudes des citrouilles et des lanternes, mises en valeur par le bloom, qui contrastent avec la nuit froide.
+
+\subsection{Les voleurs ne volaient rien}
+Dans la première version, le voleur volait un cadeau quand il arrivait à moins de 3 m du centre du sapin. En test, les voleurs se regroupaient autour du sapin, mais rien ne se passait. Le sapin avait été agrandi 2 fois, et la NavMesh contourne son tronc : les agents s'arrêtaient au bord de ce trou, à plus de 3 m du centre, et n'atteignaient jamais la distance de vol.
+
+Plutôt que d'augmenter la distance, ce qui aurait dépendu de la taille du sapin, j'ai réutilisé la zone trigger du sapin. Quand un objet y entre, \texttt{OnTriggerEnter} vérifie s'il a un script \texttt{Thief}, et si oui, appelle sa méthode \texttt{ReachTree()}. Unity ne déclenche un trigger que si l'un des deux objets a un \emph{Rigidbody} (ou un \emph{CharacterController}, ce qui explique que la détection du joueur marchait déjà). J'ai donc ajouté au voleur un Rigidbody en mode \emph{Is Kinematic} : il déclenche le trigger, mais la physique ne le déplace pas, c'est toujours la NavMesh qui s'en charge.
 
 \subsection{Une scène perdue}
 L'ordinateur s'est éteint alors que la scène n'était pas enregistrée. Unity avait créé une copie de secours dans le dossier \texttt{Assets/\_Recovery}, ce qui m'a permis de la récupérer. Depuis, j'enregistre régulièrement avec Ctrl+S.

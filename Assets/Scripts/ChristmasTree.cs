@@ -18,12 +18,20 @@ public class ChristmasTree : MonoBehaviour
         UpdateVisuals();
     }
 
-    // Le joueur entre dans la zone de dépôt (son CharacterController déclenche le trigger)
+    // Quelque chose entre dans la zone au pied du sapin
     void OnTriggerEnter(Collider other)
     {
+        // Le joueur (son CharacterController déclenche le trigger)
         if (other.CompareTag("Player"))
         {
             playerInZone = true;
+        }
+
+        // Un voleur (il lui faut un Rigidbody "Is Kinematic" pour déclencher le trigger)
+        Thief thief = other.GetComponent<Thief>();
+        if (thief != null)
+        {
+            thief.ReachTree();
         }
     }
 
