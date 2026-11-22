@@ -431,7 +431,7 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
 % ---------------------------------------------------------------------
 \subsection{Spawner}
 
-\textbf{Rôle.} Faire apparaître des créatures régulièrement, loin du joueur.
+\textbf{Rôle.} Faire apparaître des créatures régulièrement la nuit, loin du joueur, en mélangeant chasseurs et voleurs.
 
 \begin{table}[H]
 \centering
@@ -439,7 +439,9 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
 \toprule
 \textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
 \midrule
-\texttt{creaturePrefabs} & Creature & prefabs possibles, un est tiré au hasard \\
+\texttt{creaturePrefabs} & Creature & chasseurs possibles, un est tiré au hasard \\
+\texttt{thiefPrefabs} & Thief & voleurs possibles \\
+\texttt{thiefChance} & 0,3 & probabilité qu'une créature soit un voleur \\
 \texttt{spawnPoints} & SP1 à SP4 & points d'apparition (coins de l'arène) \\
 \texttt{spawnInterval} & 3 s & temps entre deux tentatives \\
 \texttt{minDistance} & 15 m & distance minimale au joueur \\
@@ -453,14 +455,33 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
   \item le spawner compte les créatures en vie avec \texttt{FindGameObjectsWithTag("Creature").Length} et s'arrête s'il y en a trop ;
   \item il tire un point au hasard ;
   \item si ce point est trop près du joueur, il abandonne pour ce tour ;
-  \item sinon, il instancie un prefab tiré au hasard sur ce point.
+  \item sinon, il choisit le type de créature (voleur ou chasseur), puis instancie un prefab de ce type, tiré au hasard, sur ce point.
 \end{enumerate}
+
+\paragraph{Le réglage \texttt{thiefChance}.} À chaque apparition, \texttt{Random.value} tire un nombre au hasard entre 0 et 1. Si ce nombre est inférieur à \texttt{thiefChance}, la créature est un voleur ; sinon, c'est un chasseur. \texttt{thiefChance} est donc la probabilité qu'une créature soit un voleur. Dans l'Inspector, l'attribut \texttt{[Range(0f, 1f)]} affiche ce réglage sous forme de curseur. Pour 10 créatures apparues dans une nuit, on obtient en moyenne :
+
+\begin{table}[H]
+\centering
+\begin{tabular}{cccp{7cm}}
+\toprule
+\texttt{thiefChance} & \textbf{Voleurs} & \textbf{Chasseurs} & \textbf{Effet en jeu} \\
+\midrule
+0 & 0 & 10 & que des chasseurs : les cadeaux ne risquent rien, il faut seulement survivre \\
+0,3 & 3 & 7 & surtout du combat, avec quelques voleurs à surveiller \\
+0,5 & 5 & 5 & il faut sans cesse choisir entre se défendre et protéger le sapin \\
+0,7 & 7 & 3 & peu de danger pour le joueur, mais les cadeaux partent vite \\
+1 & 10 & 0 & que des voleurs : le joueur ne peut pas mourir, mais doit courir après tout le monde \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et la suivante cinq. Plus la valeur est haute, plus les cadeaux sont menacés, et moins le joueur l'est. C'est pour cette raison que l'étape F fait augmenter ce réglage avec le nombre de cadeaux sous le sapin : au début de la partie, la nuit est surtout un combat ; près de la victoire, elle devient une course pour protéger les cadeaux.
 
 \textbf{Limites et problèmes connus.}
 \begin{itemize}
   \item \textbf{Des apparitions sont perdues.} Quand le point tiré est trop près du joueur, on ne réessaie pas tout de suite avec un autre point. Si le joueur se tient dans un coin, environ une tentative sur quatre est perdue. Parcourir les points avec une boucle \texttt{for} pour en trouver un valide corrigerait ce problème.
   \item \textbf{Une créature peut apparaître sous les yeux du joueur.} Seule la distance est vérifiée, pas le champ de vision. À 15 m, le joueur peut voir la créature apparaître.
-  \item \textbf{Une erreur si les tableaux sont vides.} Si \texttt{spawnPoints} ou \texttt{creaturePrefabs} est vide dans l'Inspector, \texttt{Random.Range(0, 0)} renvoie 0 et l'accès à la case 0 provoque une erreur à chaque tentative. Une vérification de \texttt{Length} au démarrage éviterait ce cas.
+  \item \textbf{Une erreur si les tableaux sont vides.} Si \texttt{spawnPoints} ou \texttt{creaturePrefabs} est vide dans l'Inspector, \texttt{Random.Range(0, 0)} renvoie 0 et l'accès à la case 0 provoque une erreur à chaque tentative. C'est la même chose pour \texttt{thiefPrefabs} dès qu'un voleur est tiré. Une vérification de \texttt{Length} au démarrage éviterait ce cas.
   \item \textbf{La difficulté est fixe.} L'intervalle et le nombre maximum de créatures ne changent pas au cours de la partie.
 \end{itemize}
 
