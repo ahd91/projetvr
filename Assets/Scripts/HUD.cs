@@ -11,6 +11,7 @@ public class HUD : MonoBehaviour
     [SerializeField] private Text challengeText;
     [SerializeField] private Text phaseText;
     [SerializeField] private Text giftText;
+    [SerializeField] private Text weaponText;
 
     [Header("Game over")]
     [SerializeField] private GameObject gameOverPanel;
@@ -52,6 +53,24 @@ public class HUD : MonoBehaviour
         if (player.IsCarryingGift())
         {
             giftText.text = giftText.text + "   (tu portes un cadeau : va au sapin et appuie sur E)";
+        }
+
+        // Arme du clic droit : ralentisseur le jour, canon la nuit (avec sa recharge)
+        if (dayNightManager.IsNight())
+        {
+            float cannonTimeLeft = player.GetCannonTimeLeft();
+            if (cannonTimeLeft <= 0)
+            {
+                weaponText.text = "Canon : PRÊT (clic droit)";
+            }
+            else
+            {
+                weaponText.text = "Canon : recharge " + Mathf.CeilToInt(cannonTimeLeft) + " s";
+            }
+        }
+        else
+        {
+            weaponText.text = "Ralentisseur (clic droit)";
         }
 
         // Assez de cadeaux et la victoire n'est pas encore affichée

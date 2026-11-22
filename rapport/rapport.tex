@@ -218,6 +218,30 @@ La soustraction de deux positions donne le vecteur qui va du joueur vers le cade
 
 Un cadeau trop rapide ne peut pas être attrapé. Il faut d'abord le ralentir avec la capacité spéciale (clic droit), qui fonctionne comme sur les créatures. La touche E a alors deux usages : les mains vides, elle attrape le cadeau visé s'il est ralenti et à moins de 3 m (on réutilise le raycast du tir et \texttt{hit.distance}) ; avec un cadeau, elle le dépose si le joueur est dans la zone du sapin. Le cadeau ramassé est détruit, et un modèle de cadeau placé devant la caméra est affiché avec \texttt{SetActive} pour montrer qu'on le porte. Les cadeaux qui n'ont pas été attrapés disparaissent à la tombée de la nuit.
 
+\subsection{Étape D : l'arme double}
+Le clic droit change de rôle selon la phase. Le \texttt{PlayerController} demande au \texttt{DayNightManager} s'il fait nuit (\texttt{IsNight()}) :
+\begin{itemize}
+  \item \textbf{le jour}, c'est le ralentisseur, qui sert à attraper les cadeaux farceurs ;
+  \item \textbf{la nuit}, c'est un \textbf{canon} : un tir explosif très puissant, suivi de 5 secondes de recharge.
+\end{itemize}
+Le canon utilise d'abord le raycast pour trouver le point d'impact (\texttt{hit.point}). Il récupère ensuite tous les colliders dans une sphère autour de ce point avec \texttt{Physics.OverlapSphere}, et inflige des dégâts à tous ceux qui ont un \texttt{Health}. On obtient ainsi un effet de zone, qui permet de tuer un groupe de monstres d'un coup :
+\begin{lstlisting}
+Collider[] touched = Physics.OverlapSphere(hit.point, cannonRadius);
+foreach (Collider col in touched)
+{
+    if (col.CompareTag("Player"))
+    {
+        continue; // le joueur ne se blesse pas avec sa propre explosion
+    }
+    Health health = col.GetComponent<Health>();
+    if (health != null)
+    {
+        health.TakeDamage(cannonDamage);
+    }
+}
+\end{lstlisting}
+La recharge fonctionne comme les cooldowns des créatures : on retient l'heure à laquelle le canon sera prêt et on la compare à \texttt{Time.time}. Le HUD affiche l'arme active et le temps de recharge restant.
+
 % TODO : étapes B à H à compléter au fur et à mesure.
 
 % =====================================================================
@@ -290,6 +314,9 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
 \midrule
 \texttt{damage} & 1 & points de vie retirés par un tir \\
 \texttt{slowDuration} & 3 s & durée du ralentissement \\
+\texttt{cannonDamage} & 5 & dégâts du canon (tue toute créature) \\
+\texttt{cannonCooldown} & 5 s & temps de recharge du canon \\
+\texttt{cannonRadius} & 4 m & rayon de l'explosion \\
 \texttt{fire}, \texttt{slow} & -- & actions de l'Input System (clic gauche, clic droit) \\
 \texttt{groundCheckMask} & Ground & layer considéré comme du sol \\
 \bottomrule
@@ -300,7 +327,8 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
 \begin{itemize}
   \item Dans \texttt{Start()}, les actions sont activées, et les fonctions \texttt{FirePressed} et \texttt{SlowPressed} sont abonnées aux événements \texttt{performed}. Elles sont désabonnées dans \texttt{OnDestroy()}.
   \item \texttt{ShootRay(out RaycastHit hit)} lance un rayon depuis le centre de l'écran et renvoie \texttt{true} si un objet est touché. Le tir et la capacité utilisent tous les deux cette fonction.
-  \item Le tir cherche un composant \texttt{Health} sur l'objet touché. La capacité cherche un composant \texttt{Creature}.
+  \item Le tir cherche un composant \texttt{Health} sur l'objet touché.
+  \item Le clic droit appelle \texttt{SpecialPressed()}. Le jour, elle appelle \texttt{SlowTarget()}, qui ralentit la \texttt{Creature} ou le \texttt{Gift} touché. La nuit, elle appelle \texttt{FireCannon()} : si le canon est rechargé, elle fait exploser une sphère de rayon \texttt{cannonRadius} au point d'impact avec \texttt{Physics.OverlapSphere}, et inflige \texttt{cannonDamage} à chaque \texttt{Health} touché, sauf au joueur.
   \item La touche E (action \texttt{Interact}) appelle \texttt{InteractPressed}, qui interagit avec le sapin quand le joueur est dans sa zone. La référence au sapin (\texttt{tree}) est glissée dans l'Inspector.
   \item Si le jeu est en pause (\texttt{Time.timeScale == 0}, pendant le Game Over), \texttt{FirePressed} et \texttt{SlowPressed} s'arrêtent tout de suite.
 \end{itemize}
@@ -309,6 +337,10 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
 \begin{itemize}
   \item \textbf{Le rayon n'a pas de portée maximale ni de filtre.} \texttt{Physics.Raycast(ray, out hit)} touche le premier collider sur une distance infinie. Ce n'est pas gênant ici, car l'arène est fermée et les murs arrêtent le rayon. Le cours montre une version avec une distance maximale (\texttt{\_maxDist}), qu'on pourrait ajouter.
   \item \textbf{Le collider doit être sur l'objet qui porte le script.} On utilise \texttt{hit.collider.GetComponent<Health>()}. Si on remplace la capsule par un modèle 3D dont le collider est sur un objet enfant, le tir ne trouvera plus le \texttt{Health}. Il faudra faire attention à l'étape 8.
+  \item \textbf{L'explosion traverse les murs.} \texttt{OverlapSphere} prend tout ce qui est dans la sphère, même une créature cachée derrière un obstacle. Un raycast entre le point d'impact et chaque créature corrigerait ce problème, comme pour l'attaque des créatures.
+  \item \textbf{Un tir dans le ciel consomme la recharge.} Si le rayon ne touche rien, il n'y a pas d'explosion, mais il faut quand même attendre 5 secondes.
+  \item \textbf{Le canon n'a pas encore d'effet visuel} : pas d'explosion ni de fumée. Des particules sont prévues à l'étape H.
+  \item \textbf{Le nom de l'action est resté \texttt{slow}.} L'action du clic droit sert maintenant aux deux armes, mais elle n'a pas été renommée, pour ne pas perdre la référence dans l'Inspector.
   \item \textbf{Le saut ne fonctionne pas.} L'action \texttt{jump} est activée mais jamais lue dans \texttt{Update()}. C'est le cas depuis le code fourni, et le jeu n'en a pas besoin pour l'instant.
   \item \textbf{La sensibilité de la souris dépend du nombre d'images par seconde.} Le déplacement de la souris (\texttt{delta}) correspond déjà au mouvement depuis la dernière frame. Le multiplier en plus par \texttt{Time.deltaTime} fait que la caméra tourne moins vite quand le jeu tourne plus vite. C'est un détail du code fourni que je n'ai pas modifié.
   \item \textbf{Code inutile.} La ligne \texttt{using UnityEngine.Events;} n'est pas utilisée. La classe C\# générée \texttt{Input Actions.cs} n'est pas utilisée non plus, car les actions passent par des \texttt{InputActionReference}.

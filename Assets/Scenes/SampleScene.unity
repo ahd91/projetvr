@@ -409,6 +409,7 @@ RectTransform:
   - {fileID: 1117933552}
   - {fileID: 1885410816}
   - {fileID: 526317353}
+  - {fileID: 502772875}
   - {fileID: 1053867326}
   - {fileID: 279572975}
   - {fileID: 2080892103}
@@ -934,6 +935,7 @@ MonoBehaviour:
   challengeText: {fileID: 1053867327}
   phaseText: {fileID: 279572977}
   giftText: {fileID: 526317354}
+  weaponText: {fileID: 502772876}
   gameOverPanel: {fileID: 2080892102}
   victoryPanel: {fileID: 1682296070}
   playerHealth: {fileID: 1399642137}
@@ -1450,6 +1452,85 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 3
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &502772874
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 502772875}
+  - component: {fileID: 502772877}
+  - component: {fileID: 502772876}
+  m_Layer: 5
+  m_Name: WeaponText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &502772875
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 502772874}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 62097101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 40}
+  m_SizeDelta: {x: 500, y: 30}
+  m_Pivot: {x: 0.5, y: 0}
+--- !u!114 &502772876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 502772874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 20
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 2
+    m_MaxSize: 40
+    m_Alignment: 1
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: Weapon
+--- !u!222 &502772877
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 502772874}
+  m_CullTransparentMesh: 1
 --- !u!1 &526317352
 GameObject:
   m_ObjectHideFlags: 0
@@ -1721,6 +1802,10 @@ PrefabInstance:
       propertyPath: tree
       value: 
       objectReference: {fileID: 467343140}
+    - target: {fileID: 4289309445196907576, guid: 3d083df1ba6b40447b2cb35ae722f79b, type: 3}
+      propertyPath: dayNightManager
+      value: 
+      objectReference: {fileID: 1294109688}
     - target: {fileID: 4289309445196907576, guid: 3d083df1ba6b40447b2cb35ae722f79b, type: 3}
       propertyPath: carriedGiftVisual
       value: 
@@ -2856,7 +2941,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f32882daa0596a5429fcc47bbb6ae5bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DayNightManager
-  dayDuration: 60
+  dayDuration: 15
   nightDuration: 15
   sun: {fileID: 410087040}
   dayColor: {r: 1, g: 0.95, b: 0.85, a: 1}

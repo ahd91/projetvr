@@ -25,6 +25,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private int damage = 1;
     [SerializeField] private float slowDuration = 3f; // secondes de ralentissement
 
+    [Header("Canon (clic droit la nuit)")]
+    [SerializeField] private int cannonDamage = 5;       // assez pour tuer n'importe quelle créature d'un coup
+    [SerializeField] private float cannonCooldown = 5f;  // secondes de recharge
+    [Tooltip("Rayon de l'explosion autour du point d'impact")]
+    [SerializeField] private float cannonRadius = 4f;
+    [Tooltip("Pour savoir s'il fait jour ou nuit (glisser depuis la Hierarchy)")]
+    [SerializeField] private DayNightManager dayNightManager;
+
     [Header("Cadeaux")]
     [Tooltip("Le sapin de la scène (glisser depuis la Hierarchy)")]
     [SerializeField] private ChristmasTree tree;
@@ -38,6 +46,7 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded = false;
     private Vector3 velocity = Vector3.zero;
     private int carriedValue = 0; // valeur du cadeau porté (0 = mains vides)
+    private float cannonReadyTime = 0f; // moment où le canon sera rechargé
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -65,7 +74,7 @@ public class PlayerController : MonoBehaviour
 
         if (slow)
         {
-            slow.action.performed += SlowPressed;
+            slow.action.performed += SpecialPressed;
             slow.action.Enable();
         }
 
@@ -94,7 +103,7 @@ public class PlayerController : MonoBehaviour
 
         if (slow)
         {
-            slow.action.performed -= SlowPressed;
+            slow.action.performed -= SpecialPressed;
         }
 
         if (interact)
@@ -132,8 +141,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // Clic droit (capacité spéciale) : ralentit la créature touchée
-    private void SlowPressed(InputAction.CallbackContext obj)
+    // Clic droit (capacité spéciale) : ralentisseur le jour, canon la nuit
+    private void SpecialPressed(InputAction.CallbackContext obj)
     {
         // Jeu en pause (Game Over) : plus de capacité non plus
         if (Time.timeScale == 0)
@@ -141,6 +150,19 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if (dayNightManager.IsNight())
+        {
+            FireCannon();
+        }
+        else
+        {
+            SlowTarget();
+        }
+    }
+
+    // Le jour : ralentit la créature ou le cadeau visé
+    private void SlowTarget()
+    {
         RaycastHit hit;
         if (ShootRay(out hit))
         {
@@ -156,6 +178,46 @@ public class PlayerController : MonoBehaviour
                 gift.Slow(slowDuration);
             }
         }
+    }
+
+    // La nuit : un tir très puissant, mais il faut attendre la recharge
+    private void FireCannon()
+    {
+        if (Time.time < cannonReadyTime)
+        {
+            Debug.Log("Canon en recharge...");
+            return;
+        }
+        cannonReadyTime = Time.time + cannonCooldown;
+        Debug.Log("BOUM !");
+
+        // 1) Le rayon donne le point d'impact (si on vise le ciel, il ne se passe rien)
+        RaycastHit hit;
+        if (ShootRay(out hit))
+        {
+            // 2) Explosion : on récupère tous les colliders dans une sphère autour de l'impact
+            Collider[] touched = Physics.OverlapSphere(hit.point, cannonRadius);
+            foreach (Collider col in touched)
+            {
+                // Le joueur ne se blesse pas avec sa propre explosion
+                if (col.CompareTag("Player"))
+                {
+                    continue;
+                }
+
+                Health health = col.GetComponent<Health>();
+                if (health != null)
+                {
+                    health.TakeDamage(cannonDamage);
+                }
+            }
+        }
+    }
+
+    // Temps restant avant que le canon soit prêt (0 ou moins = prêt). Utilisée par le HUD.
+    public float GetCannonTimeLeft()
+    {
+        return cannonReadyTime - Time.time;
     }
 
     // Touche E : interagir avec le sapin

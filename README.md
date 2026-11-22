@@ -22,8 +22,8 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | ZQSD | Se déplacer |
 | Souris | Regarder |
 | Clic gauche | Tirer |
-| Clic droit (jour) | Ralentisseur : ralentit le cadeau visé (pour l'instant actif jour et nuit) |
-| Clic droit (nuit) | Canon : un tir puissant avec un temps de recharge *(à venir : étape D)* |
+| Clic droit (jour) | Ralentisseur : ralentit le cadeau visé |
+| Clic droit (nuit) | Canon : une explosion de zone (4 m) qui tue en un coup, puis 5 s de recharge |
 | E | Attraper le cadeau visé (s'il est ralenti et à moins de 3 m), ou le déposer au pied du sapin |
 | Échap | Libérer la souris |
 
@@ -44,7 +44,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 
 | Script | Rôle |
 |---|---|
-| `PlayerController.cs` | Gère le déplacement et la caméra. Le même raycast sert au tir (clic gauche : dégâts) et à la capacité (clic droit : ralentissement). Fourni par le prof, puis complété. |
+| `PlayerController.cs` | Gère le déplacement et la caméra. Le même raycast sert au tir (clic gauche), au ralentisseur (clic droit le jour), au canon à explosion de zone (clic droit la nuit, avec `Physics.OverlapSphere`) et au ramassage des cadeaux (E). Fourni par le prof, puis complété. |
 | `Health.cs` | Gère les points de vie. Utilisé par les créatures et par le joueur. |
 | `Creature.cs` | La créature suit le joueur sur la NavMesh et lui fait des dégâts quand elle est proche, avec un temps de recharge (cooldown). Elle peut être ralentie : elle passe à 30 % de sa vitesse et devient cyan pendant 3 s. |
 | `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), avec un maximum de créatures en même temps. |
@@ -72,7 +72,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - [x] A. Cycle jour/nuit : chrono, lumière, ciel, brouillard, monstres uniquement la nuit
 - [x] B. Le sapin : zone de dépôt, compteur de cadeaux et victoire à 10
 - [x] C. Les cadeaux farceurs : ils fuient le joueur ; on les ralentit, on les ramasse et on les dépose
-- [ ] D. L'arme double : ralentisseur le jour, canon la nuit avec un temps de recharge
+- [x] D. L'arme double : ralentisseur le jour, canon la nuit avec un temps de recharge
 - [ ] E. Les voleurs : ils vont au sapin, prennent un cadeau et s'enfuient ; un voleur tué rend le cadeau
 - [ ] F. La difficulté progressive selon le nombre de cadeaux
 - [ ] G. Le défi de nuit et sa récompense, le cadeau doré
