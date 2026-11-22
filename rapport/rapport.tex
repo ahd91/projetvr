@@ -206,6 +206,18 @@ Les cadeaux déposés sont visibles : dix modèles de cadeaux sont posés sous l
 
 Pour tester cette étape avant d'avoir des cadeaux à ramasser, la nouvelle touche \textbf{E} (une action \texttt{Interact} ajoutée dans l'Input System) ajoutait directement un cadeau quand le joueur était dans la zone.
 
+\subsection{Étape C : les cadeaux farceurs}
+Le jour, le \texttt{GiftSpawner} fait apparaître 4 cadeaux sur des points tirés au hasard. Chaque cadeau est un prefab avec un \texttt{NavMeshAgent} et le script \texttt{Gift}. Quand le joueur s'approche à moins de 8 m, le cadeau calcule un point situé à l'opposé du joueur et s'y dirige :
+\begin{lstlisting}
+Vector3 away = transform.position - player.transform.position;
+away.y = 0;
+Vector3 target = transform.position + away.normalized * fleeStep;
+agent.SetDestination(target);
+\end{lstlisting}
+La soustraction de deux positions donne le vecteur qui va du joueur vers le cadeau. \texttt{normalized} le ramène à une longueur de 1, et on le multiplie par la distance de fuite voulue. C'est le troisième usage de la navigation dans le jeu : les chasseurs poursuivent le joueur, les voleurs vont au sapin, et les cadeaux fuient.
+
+Un cadeau trop rapide ne peut pas être attrapé. Il faut d'abord le ralentir avec la capacité spéciale (clic droit), qui fonctionne comme sur les créatures. La touche E a alors deux usages : les mains vides, elle attrape le cadeau visé s'il est ralenti et à moins de 3 m (on réutilise le raycast du tir et \texttt{hit.distance}) ; avec un cadeau, elle le dépose si le joueur est dans la zone du sapin. Le cadeau ramassé est détruit, et un modèle de cadeau placé devant la caméra est affiché avec \texttt{SetActive} pour montrer qu'on le porte. Les cadeaux qui n'ont pas été attrapés disparaissent à la tombée de la nuit.
+
 % TODO : étapes B à H à compléter au fur et à mesure.
 
 % =====================================================================
@@ -514,6 +526,44 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
   \item \textbf{L'affichage est limité à la taille du tableau.} Au-delà de 10 cadeaux, par exemple avec un cadeau doré déposé à 9, le compteur continue de monter, mais aucun nouveau modèle n'apparaît. Comme la partie se termine à 10, ce n'est pas gênant.
   \item \textbf{Le compteur peut dépasser l'objectif.} Avec un cadeau doré déposé à 9, on arrive à 11. La victoire se déclenche quand même, car le HUD teste \texttt{>=}.
   \item \textbf{L'état de la zone peut être faux en cas de téléportation.} Si le joueur était déplacé directement hors de la zone (sans la traverser), \texttt{OnTriggerExit} pourrait ne pas être appelé. Le joueur ne fait que marcher dans ce jeu, donc le cas ne se présente pas.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\subsection{Gift et GiftSpawner}
+
+\textbf{Rôle.} \texttt{Gift} est le cadeau farceur, qui fuit le joueur et peut être ralenti. \texttt{GiftSpawner} les fait apparaître au début de chaque journée.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llp{7cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
+\midrule
+\texttt{value} & 1 & cadeaux rapportés (2 pour le cadeau doré) \\
+\texttt{fleeDistance} & 8 m & distance à partir de laquelle il fuit \\
+\texttt{fleeStep} & 6 m & distance visée à chaque fuite \\
+\texttt{slowFactor} & 0,3 & vitesse pendant le ralentissement \\
+Speed (NavMeshAgent) & 3 & vitesse normale (le joueur va à 5) \\
+\texttt{giftsPerDay} (spawner) & 4 & cadeaux qui apparaissent chaque jour \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fonctionnement.}
+\begin{itemize}
+  \item \texttt{Gift} reprend la structure de \texttt{Creature} : la même vérification de la NavMesh au démarrage, le même ralentissement avec une heure de fin et la même couleur cyan. Seule la destination change, puisqu'il va à l'opposé du joueur au lieu d'aller vers lui.
+  \item \texttt{GiftSpawner.SpawnGifts()} est appelée par le \texttt{DayNightManager} au lever du jour. Elle instancie \texttt{giftsPerDay} cadeaux sur des points et avec des modèles tirés au hasard.
+  \item Le ramassage et le dépôt sont dans \texttt{PlayerController.InteractPressed()}. Le joueur retient la valeur du cadeau porté dans \texttt{carriedValue}, qui vaut 0 quand il a les mains vides.
+\end{itemize}
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{Les cadeaux finissent dans les coins.} Fuir en ligne droite à l'opposé du joueur pousse le cadeau contre les murs. Une fois coincé, il est plus facile à attraper : c'est presque un avantage pour le joueur, mais ce n'est pas très malin de la part du cadeau.
+  \item \textbf{La destination peut être hors de la NavMesh}, par exemple derrière un mur. L'agent va alors au point accessible le plus proche, ce qui donne parfois un cadeau qui longe un mur.
+  \item \textbf{Deux cadeaux peuvent apparaître au même endroit}, car le point est tiré au hasard à chaque fois, sans vérifier s'il est déjà pris. Les agents s'écartent ensuite tout seuls.
+  \item \textbf{Le cadeau ne fait rien quand le joueur est loin.} Il reste immobile au lieu de se promener. Un déplacement au hasard le rendrait plus vivant.
+  \item \textbf{Le cadeau porté est seulement mémorisé par sa valeur.} L'objet ramassé est détruit et remplacé par un modèle fixe devant la caméra. Le joueur voit donc toujours le même modèle, quel que soit le cadeau attrapé.
+  \item \textbf{Un seul cadeau à la fois.} Il faut faire un aller-retour au sapin pour chaque cadeau. C'est voulu, pour le rythme de la journée.
 \end{itemize}
 
 % ---------------------------------------------------------------------

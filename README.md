@@ -22,9 +22,9 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | ZQSD | Se déplacer |
 | Souris | Regarder |
 | Clic gauche | Tirer |
-| Clic droit (jour) | Ralentisseur : ralentit le cadeau visé *(à venir : étape D)* |
+| Clic droit (jour) | Ralentisseur : ralentit le cadeau visé (pour l'instant actif jour et nuit) |
 | Clic droit (nuit) | Canon : un tir puissant avec un temps de recharge *(à venir : étape D)* |
-| E | Ramasser ou déposer un cadeau (pour l'instant : déposer un cadeau de test dans la zone du sapin) |
+| E | Attraper le cadeau visé (s'il est ralenti et à moins de 3 m), ou le déposer au pied du sapin |
 | Échap | Libérer la souris |
 
 ## Notions du sujet
@@ -50,6 +50,8 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), avec un maximum de créatures en même temps. |
 | `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel, le brouillard, la lumière ambiante et le post-traitement de nuit, et il n'active le spawner de monstres que la nuit. |
 | `ChristmasTree.cs` | La zone de dépôt au pied du sapin (un trigger). Il compte les cadeaux, affiche autant de modèles de cadeaux sous le sapin, et permet aux voleurs d'en retirer un. |
+| `Gift.cs` | Le cadeau farceur : il s'enfuit à l'opposé du joueur sur la NavMesh. Il peut être ralenti, et il ne peut être attrapé que dans ce cas. |
+| `GiftSpawner.cs` | Fait apparaître 4 cadeaux farceurs au début de chaque journée, sur des points tirés au hasard. |
 | `HUD.cs` | Affiche la vie, le score, le défi, la phase avec le temps restant, et le nombre de cadeaux. À 10 cadeaux, il affiche l'écran de victoire. À la mort du joueur, il affiche le Game Over, met le jeu en pause et libère la souris. Le bouton Rejouer recharge la scène. |
 | `ChallengeManager.cs` | Ancien système de défis (« tue X créatures »), qui sera remplacé par le défi de nuit à l'étape G. |
 
@@ -69,7 +71,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 
 - [x] A. Cycle jour/nuit : chrono, lumière, ciel, brouillard, monstres uniquement la nuit
 - [x] B. Le sapin : zone de dépôt, compteur de cadeaux et victoire à 10
-- [ ] C. Les cadeaux farceurs : ils fuient le joueur ; on les ralentit, on les ramasse et on les dépose
+- [x] C. Les cadeaux farceurs : ils fuient le joueur ; on les ralentit, on les ramasse et on les dépose
 - [ ] D. L'arme double : ralentisseur le jour, canon la nuit avec un temps de recharge
 - [ ] E. Les voleurs : ils vont au sapin, prennent un cadeau et s'enfuient ; un voleur tué rend le cadeau
 - [ ] F. La difficulté progressive selon le nombre de cadeaux

@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Creature
+  - Gift
   layers:
   - Default
   - TransparentFX

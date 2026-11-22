@@ -27,6 +27,10 @@ public class DayNightManager : MonoBehaviour
     [Tooltip("Lumière ambiante la nuit (1 = comme le jour)")]
     [SerializeField] private float nightAmbient = 0.4f;
 
+    [Header("Cadeaux")]
+    [Tooltip("Fait apparaître les cadeaux farceurs au début de chaque jour")]
+    [SerializeField] private GiftSpawner giftSpawner;
+
     [Header("Monstres")]
     [Tooltip("Le Spawner n'est actif que la nuit")]
     [SerializeField] private Spawner spawner;
@@ -76,6 +80,8 @@ public class DayNightManager : MonoBehaviour
             Destroy(creature);
         }
 
+        giftSpawner.SpawnGifts();
+
         Debug.Log("Le jour se lève : c'est Noël !");
     }
 
@@ -94,6 +100,13 @@ public class DayNightManager : MonoBehaviour
         nightVolume.SetActive(true); // post-traitement de nuit : bloom, vignette, couleurs froides
 
         spawner.enabled = true;
+
+        // Les cadeaux farceurs pas attrapés disparaissent à la tombée de la nuit
+        GameObject[] gifts = GameObject.FindGameObjectsWithTag("Gift");
+        foreach (GameObject gift in gifts)
+        {
+            Destroy(gift);
+        }
 
         Debug.Log("La nuit tombe : c'est Halloween !");
     }

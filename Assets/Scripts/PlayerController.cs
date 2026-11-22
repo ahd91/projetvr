@@ -28,11 +28,16 @@ public class PlayerController : MonoBehaviour
     [Header("Cadeaux")]
     [Tooltip("Le sapin de la scène (glisser depuis la Hierarchy)")]
     [SerializeField] private ChristmasTree tree;
+    [Tooltip("Distance maximale pour attraper un cadeau")]
+    [SerializeField] private float pickRange = 3f;
+    [Tooltip("Modèle de cadeau tenu devant la caméra (enfant de la Camera, SANS collider)")]
+    [SerializeField] private GameObject carriedGiftVisual;
 
     private CharacterController controller;
     private float rotationX = 0.0f;
     private bool isGrounded = false;
     private Vector3 velocity = Vector3.zero;
+    private int carriedValue = 0; // valeur du cadeau porté (0 = mains vides)
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -68,6 +73,11 @@ public class PlayerController : MonoBehaviour
         {
             interact.action.performed += InteractPressed;
             interact.action.Enable();
+        }
+
+        if (carriedGiftVisual != null)
+        {
+            carriedGiftVisual.SetActive(false);
         }
 
         controller = GetComponent<CharacterController>();
@@ -139,6 +149,12 @@ public class PlayerController : MonoBehaviour
             {
                 creature.Slow(slowDuration);
             }
+
+            Gift gift = hit.collider.GetComponent<Gift>();
+            if (gift != null)
+            {
+                gift.Slow(slowDuration);
+            }
         }
     }
 
@@ -150,12 +166,47 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // TEST ÉTAPE B : dans la zone du sapin, E ajoute un cadeau.
-        // À l'étape C, on ne pourra déposer que si on porte un cadeau.
-        if (tree != null && tree.IsPlayerInZone())
+        // 1) On porte déjà un cadeau : on le dépose si on est au pied du sapin
+        if (carriedValue > 0)
         {
-            tree.AddGift(1);
+            if (tree.IsPlayerInZone())
+            {
+                tree.AddGift(carriedValue);
+                carriedValue = 0;
+                carriedGiftVisual.SetActive(false);
+            }
+            else
+            {
+                Debug.Log("Va au pied du sapin pour déposer le cadeau");
+            }
+            return;
         }
+
+        // 2) Mains vides : on essaie d'attraper le cadeau visé, s'il est assez proche
+        RaycastHit hit;
+        if (ShootRay(out hit) && hit.distance <= pickRange)
+        {
+            Gift gift = hit.collider.GetComponent<Gift>();
+            if (gift != null)
+            {
+                if (gift.IsSlowed())
+                {
+                    carriedValue = gift.GetValue();
+                    carriedGiftVisual.SetActive(true);
+                    Destroy(gift.gameObject);
+                }
+                else
+                {
+                    Debug.Log("Il est trop rapide : ralentis-le d'abord (clic droit) !");
+                }
+            }
+        }
+    }
+
+    // Utilisée par le HUD
+    public bool IsCarryingGift()
+    {
+        return carriedValue > 0;
     }
 
     // Update is called once per frame

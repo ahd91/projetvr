@@ -23,6 +23,7 @@ public class HUD : MonoBehaviour
     [SerializeField] private ChallengeManager challengeManager;
     [SerializeField] private DayNightManager dayNightManager;
     [SerializeField] private ChristmasTree tree;
+    [SerializeField] private PlayerController player;
 
     void Start()
     {
@@ -48,6 +49,10 @@ public class HUD : MonoBehaviour
         }
 
         giftText.text = "Cadeaux sous le sapin : " + tree.GetGiftCount() + " / " + tree.GetGiftsToWin();
+        if (player.IsCarryingGift())
+        {
+            giftText.text = giftText.text + "   (tu portes un cadeau : va au sapin et appuie sur E)";
+        }
 
         // Assez de cadeaux et la victoire n'est pas encore affichée
         if (tree.GetGiftCount() >= tree.GetGiftsToWin() && victoryPanel.activeSelf == false)
