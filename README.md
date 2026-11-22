@@ -47,12 +47,12 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | `PlayerController.cs` | Gère le déplacement et la caméra. Le même raycast sert au tir (clic gauche), au ralentisseur (clic droit le jour), au canon à explosion de zone (clic droit la nuit, avec `Physics.OverlapSphere`) et au ramassage des cadeaux (E). Fourni par le prof, puis complété. |
 | `Health.cs` | Gère les points de vie. Utilisé par les créatures et par le joueur. |
 | `Creature.cs` | La créature suit le joueur sur la NavMesh et lui fait des dégâts quand elle est proche, avec un temps de recharge (cooldown). Elle peut être ralentie : elle passe à 30 % de sa vitesse et devient cyan pendant 3 s. |
-| `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), avec un maximum de créatures en même temps. Une partie des créatures sont des voleurs (`thiefChance`), les autres des chasseurs. |
+| `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), Une partie des créatures sont des voleurs, les autres des chasseurs. Le nombre maximum de créatures, l'intervalle d'apparition et la part de voleurs dépendent du nombre de cadeaux sous le sapin. |
 | `Thief.cs` | Le voleur va au sapin, prend un cadeau en entrant dans la zone trigger et s'enfuit vers son point d'apparition. S'il est tué ou s'il disparaît à l'aube, le cadeau revient (grâce à `OnDestroy`). |
 | `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel, le brouillard, la lumière ambiante et le post-traitement de nuit, et il n'active le spawner de monstres que la nuit. |
 | `ChristmasTree.cs` | La zone de dépôt au pied du sapin (un trigger). Il compte les cadeaux, affiche autant de modèles de cadeaux sous le sapin, et permet aux voleurs d'en retirer un. |
 | `Gift.cs` | Le cadeau farceur : il s'enfuit à l'opposé du joueur sur la NavMesh. Il peut être ralenti, et il ne peut être attrapé que dans ce cas. |
-| `GiftSpawner.cs` | Fait apparaître 4 cadeaux farceurs au début de chaque journée, sur des points tirés au hasard. |
+| `GiftSpawner.cs` | Fait apparaître 4 cadeaux farceurs au début de chaque journée, sur des points tirés au hasard. Ils sont plus rapides quand il y a beaucoup de cadeaux sous le sapin. |
 | `HUD.cs` | Affiche la vie, le score, le défi, la phase avec le temps restant, et le nombre de cadeaux. À 10 cadeaux, il affiche l'écran de victoire. À la mort du joueur, il affiche le Game Over, met le jeu en pause et libère la souris. Le bouton Rejouer recharge la scène. |
 | `ChallengeManager.cs` | Ancien système de défis (« tue X créatures »), qui sera remplacé par le défi de nuit à l'étape G. |
 
@@ -75,7 +75,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - [x] C. Les cadeaux farceurs : ils fuient le joueur ; on les ralentit, on les ramasse et on les dépose
 - [x] D. L'arme double : ralentisseur le jour, canon la nuit avec un temps de recharge
 - [x] E. Les voleurs : ils vont au sapin, prennent un cadeau et s'enfuient ; un voleur tué rend le cadeau
-- [ ] F. La difficulté progressive selon le nombre de cadeaux
+- [x] F. La difficulté progressive selon le nombre de cadeaux
 - [ ] G. Le défi de nuit et sa récompense, le cadeau doré
 - [ ] H. L'habillage : modèles 3D, animations, décor de Noël et d'Halloween, particules
 

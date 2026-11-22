@@ -249,6 +249,27 @@ Le voleur, avec le script \texttt{Thief}, ignore complètement le joueur. Il va 
 
 Ma première version déclenchait le vol quand le voleur arrivait à moins de 3 m du centre du sapin, mais elle ne marchait pas (voir les problèmes rencontrés). Le vol est maintenant détecté par la zone trigger du sapin.
 
+\subsection{Étape F : la difficulté progressive}
+Pour qu'une partie dure 4 à 5 cycles, la difficulté dépend du nombre $n$ de cadeaux sous le sapin. Le \texttt{Spawner} ne garde plus de valeurs fixes : trois petites fonctions recalculent les réglages à chaque apparition.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllll}
+\toprule
+\textbf{Réglage} & \textbf{Formule} & $n=0$ & $n=5$ & $n=9$ \\
+\midrule
+Créatures maximum & $3 + n$ & 3 & 8 & 12 \\
+Intervalle d'apparition & $4 - 0{,}2\,n$ (minimum 1,5 s) & 4 s & 3 s & 2,2 s \\
+Part de voleurs & $0{,}2 + 0{,}05\,n$ (maximum 0,8) & 20\,\% & 45\,\% & 65\,\% \\
+Vitesse des cadeaux le jour & $3 + 0{,}2\,n$ & 3 & 4 & 4,8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Les bornes sont appliquées avec \texttt{Mathf.Max} et \texttt{Mathf.Min}, qui renvoient la plus grande et la plus petite de deux valeurs. Comme le calcul est refait à chaque apparition, la difficulté baisse aussi en cours de nuit quand un voleur emporte un cadeau. Côté cadeaux, le \texttt{GiftSpawner} augmente la vitesse de l'agent juste après \texttt{Instantiate}, avant que le \texttt{Start()} du cadeau ne mémorise cette vitesse comme vitesse normale.
+
+L'idée est la suivante : au début, on gagne environ 3 cadeaux par cycle, car les nuits sont calmes. Près de la victoire, les voleurs sont nombreux et en emportent 1 ou 2 par nuit, ce qui ralentit la progression.
+
 % TODO : étapes B à H à compléter au fur et à mesure.
 
 % =====================================================================
@@ -441,16 +462,17 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
 \midrule
 \texttt{creaturePrefabs} & Creature & chasseurs possibles, un est tiré au hasard \\
 \texttt{thiefPrefabs} & Thief & voleurs possibles \\
-\texttt{thiefChance} & 0,3 & probabilité qu'une créature soit un voleur \\
 \texttt{spawnPoints} & SP1 à SP4 & points d'apparition (coins de l'arène) \\
-\texttt{spawnInterval} & 3 s & temps entre deux tentatives \\
 \texttt{minDistance} & 15 m & distance minimale au joueur \\
-\texttt{maxCreatures} & 10 & nombre maximum de créatures en vie \\
+\texttt{tree} & GiftZone & pour connaître le nombre de cadeaux $n$ \\
+\texttt{baseMaxCreatures} & 3 & créatures maximum : $3 + n$ \\
+\texttt{baseInterval}, \texttt{intervalPerGift}, \texttt{minInterval} & 4 ; 0,2 ; 1,5 & intervalle : $4 - 0{,}2\,n$, minimum 1,5 s \\
+\texttt{baseThiefChance}, \texttt{thiefChancePerGift}, \texttt{maxThiefChance} & 0,2 ; 0,05 ; 0,8 & part de voleurs : $0{,}2 + 0{,}05\,n$, maximum 0,8 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Fonctionnement.} Toutes les \texttt{spawnInterval} secondes :
+\textbf{Fonctionnement.} À intervalles réguliers (donnés par \texttt{GetInterval()}) :
 \begin{enumerate}
   \item le spawner compte les créatures en vie avec \texttt{FindGameObjectsWithTag("Creature").Length} et s'arrête s'il y en a trop ;
   \item il tire un point au hasard ;
@@ -458,7 +480,7 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
   \item sinon, il choisit le type de créature (voleur ou chasseur), puis instancie un prefab de ce type, tiré au hasard, sur ce point.
 \end{enumerate}
 
-\paragraph{Le réglage \texttt{thiefChance}.} À chaque apparition, \texttt{Random.value} tire un nombre au hasard entre 0 et 1. Si ce nombre est inférieur à \texttt{thiefChance}, la créature est un voleur ; sinon, c'est un chasseur. \texttt{thiefChance} est donc la probabilité qu'une créature soit un voleur. Dans l'Inspector, l'attribut \texttt{[Range(0f, 1f)]} affiche ce réglage sous forme de curseur. Pour 10 créatures apparues dans une nuit, on obtient en moyenne :
+\paragraph{La probabilité de voleur.} À chaque apparition, \texttt{Random.value} tire un nombre au hasard entre 0 et 1. Si ce nombre est inférieur à la probabilité de voleur (calculée par \texttt{GetThiefChance()}), la créature est un voleur ; sinon, c'est un chasseur. Avant l'étape F, cette probabilité était un réglage fixe \texttt{thiefChance}, affiché comme un curseur grâce à \texttt{[Range(0f, 1f)]}. Pour 10 créatures apparues dans une nuit, on obtient en moyenne :
 
 \begin{table}[H]
 \centering
@@ -482,7 +504,8 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
   \item \textbf{Des apparitions sont perdues.} Quand le point tiré est trop près du joueur, on ne réessaie pas tout de suite avec un autre point. Si le joueur se tient dans un coin, environ une tentative sur quatre est perdue. Parcourir les points avec une boucle \texttt{for} pour en trouver un valide corrigerait ce problème.
   \item \textbf{Une créature peut apparaître sous les yeux du joueur.} Seule la distance est vérifiée, pas le champ de vision. À 15 m, le joueur peut voir la créature apparaître.
   \item \textbf{Une erreur si les tableaux sont vides.} Si \texttt{spawnPoints} ou \texttt{creaturePrefabs} est vide dans l'Inspector, \texttt{Random.Range(0, 0)} renvoie 0 et l'accès à la case 0 provoque une erreur à chaque tentative. C'est la même chose pour \texttt{thiefPrefabs} dès qu'un voleur est tiré. Une vérification de \texttt{Length} au démarrage éviterait ce cas.
-  \item \textbf{La difficulté est fixe.} L'intervalle et le nombre maximum de créatures ne changent pas au cours de la partie.
+  \item \textbf{La difficulté ne dépend que des cadeaux.} Un joueur qui stagne longtemps à peu de cadeaux aura toujours des nuits faciles. On pourrait aussi tenir compte du numéro de la nuit.
+  \item \textbf{\texttt{OnEnable()} affiche la difficulté} au moment où le spawner est activé. C'est pratique pour équilibrer le jeu, mais ce message n'est pas visible pour le joueur.
 \end{itemize}
 
 % ---------------------------------------------------------------------
@@ -605,6 +628,7 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
 \texttt{slowFactor} & 0,3 & vitesse pendant le ralentissement \\
 Speed (NavMeshAgent) & 3 & vitesse normale (le joueur va à 5) \\
 \texttt{giftsPerDay} (spawner) & 4 & cadeaux qui apparaissent chaque jour \\
+\texttt{speedPerGift} (spawner) & 0,2 & vitesse ajoutée par cadeau déjà sous le sapin \\
 \bottomrule
 \end{tabular}
 \end{table}

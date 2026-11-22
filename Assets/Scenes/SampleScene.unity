@@ -4471,6 +4471,8 @@ MonoBehaviour:
   - {fileID: 2143792666}
   - {fileID: 1816041484}
   giftsPerDay: 4
+  tree: {fileID: 467343140}
+  speedPerGift: 0.2
 --- !u!4 &1940476711
 Transform:
   m_ObjectHideFlags: 0
@@ -4776,15 +4778,20 @@ MonoBehaviour:
   - {fileID: 5546168940692377995, guid: 3c02757facc4cd04c903595f16ecee3d, type: 3}
   thiefPrefabs:
   - {fileID: 5546168940692377995, guid: 2dc9162ee33136e4eb9eb750c16dfeff, type: 3}
-  thiefChance: 0.7
   spawnPoints:
   - {fileID: 1756521870}
   - {fileID: 551779814}
   - {fileID: 1492606715}
   - {fileID: 1226121883}
-  spawnInterval: 3
   minDistance: 15
-  maxCreatures: 10
+  tree: {fileID: 467343140}
+  baseMaxCreatures: 3
+  baseInterval: 4
+  intervalPerGift: 0.2
+  minInterval: 1.5
+  baseThiefChance: 0.2
+  thiefChancePerGift: 0.05
+  maxThiefChance: 0.8
 --- !u!4 &2029391347
 Transform:
   m_ObjectHideFlags: 0
