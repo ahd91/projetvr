@@ -5,7 +5,7 @@ Un jeu de tir à la troisième personne (TPS) sur le thème Halloween à Noël, 
 - **Le jour, c'est Noël.** Des cadeaux ensorcelés (les « cadeaux farceurs ») s'enfuient quand le joueur s'approche. Il faut les ralentir avec l'arme, les attraper et les déposer sous le sapin.
 - **La nuit, c'est Halloween.** Il faut survivre et protéger le sapin. Des **chasseurs** poursuivent le joueur, et des **voleurs** foncent sur le sapin, prennent un cadeau et s'enfuient avec. Un voleur tué avant de s'échapper rend le cadeau.
 
-**Victoire :** 10 cadeaux sous le sapin. **Défaite :** le joueur meurt. Plus il y a de cadeaux sous le sapin, plus les nuits sont dures. Une partie dure environ 4 à 5 cycles jour/nuit.
+**Victoire :** 10 cadeaux sous le sapin. **Défaite :** le joueur meurt. Porter un cadeau ralentit Santa à 80 % de sa vitesse, et le canon de nuit a besoin de munitions : les citrouilles allumées du village. Plus il y a de cadeaux sous le sapin, plus les nuits sont dures. Une partie dure environ 4 à 5 cycles jour/nuit.
 
 Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cadeau cette nuit »). S'il est réussi, un **cadeau doré** apparaît le lendemain : il vaut 2 cadeaux, mais il est plus rapide que les autres.
 
@@ -23,8 +23,8 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | Souris | Regarder (caméra au-dessus de l'épaule de Santa) |
 | Clic gauche | Tirer |
 | Clic droit (jour) | Ralentisseur : ralentit le cadeau visé |
-| Clic droit (nuit) | Canon : une explosion de zone (4 m) qui tue en un coup, puis 5 s de recharge |
-| E | Attraper le cadeau visé (s'il est ralenti et à moins de 3 m), ou le déposer au pied du sapin |
+| Clic droit (nuit) | Canon : une explosion de zone (4 m) qui tue en un coup, puis 5 s de recharge. Il faut une charge : 2 au début de chaque nuit, +1 par citrouille ramassée |
+| E | Attraper le cadeau visé (s'il est ralenti et à moins de 3 m), le déposer au pied du sapin, ou ramasser une citrouille (munition du canon) la nuit |
 | Échap | Libérer la souris |
 
 ## Notions du sujet
@@ -47,7 +47,8 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | `PlayerController.cs` | Gère le déplacement et la caméra. Le même raycast sert au tir (clic gauche), au ralentisseur (clic droit le jour), au canon à explosion de zone (clic droit la nuit, avec `Physics.OverlapSphere`) et au ramassage des cadeaux (E). Fourni par le prof, puis complété. |
 | `Health.cs` | Gère les points de vie. Utilisé par les créatures et par le joueur. |
 | `Creature.cs` | Le chasseur : il suit le joueur sur la NavMesh et lui fait des dégâts quand il est proche (et qu'aucun mur ne les sépare), avec un temps de recharge (cooldown). |
-| `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), Une partie des créatures sont des voleurs, les autres des chasseurs. Le nombre maximum de créatures, l'intervalle d'apparition et la part de voleurs dépendent du nombre de cadeaux sous le sapin. |
+| `PumpkinAmmo.cs` | Une citrouille de nuit qui sert de munition au canon : ramassée avec E, elle disparaît et réapparaît la nuit suivante. |
+| `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), Une partie des créatures sont des voleurs, les autres des chasseurs. Le nombre maximum de créatures, l'intervalle d'apparition et la part de voleurs dépendent du nombre de cadeaux sous le sapin. À partir de 5 cadeaux, le Krampus (un boss) apparaît une fois par nuit. Les 12 points d'apparition sont répartis tout autour du village. |
 | `Thief.cs` | Le voleur va au sapin, prend un cadeau en entrant dans la zone trigger et s'enfuit vers son point d'apparition. S'il est tué ou s'il disparaît à l'aube, le cadeau revient (grâce à `OnDestroy`). |
 | `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel, le brouillard, la lumière ambiante, le post-traitement de nuit et les décorations (neige et bonshommes le jour, citrouilles et épouvantails la nuit), et il n'active le spawner de monstres que la nuit. |
 | `ChristmasTree.cs` | La zone de dépôt au pied du sapin (un trigger). Il compte les cadeaux, affiche autant de modèles de cadeaux sous le sapin, et permet aux voleurs d'en retirer un. |

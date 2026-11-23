@@ -350,6 +350,15 @@ Pour finir, j'ai ajouté plusieurs détails qui renforcent l'alternance entre No
   \item \textbf{des nuages de fumée} : quand un monstre meurt, quand les monstres restants disparaissent au lever du jour, et quand les tas de neige se transforment en citrouilles. C'est le même principe que les impacts du tir : un prefab de particules instancié à la bonne position, puis détruit au bout de 3 secondes ;
 \end{itemize}
 
+\subsection{Rééquilibrage de la difficulté}
+En jouant la version complète, le jeu s'est révélé beaucoup trop facile. En relisant le code, j'ai identifié trois causes : le canon réglait tout (il tuait un groupe entier toutes les 5 secondes, sans contrainte), les monstres étaient trop lents pour menacer le joueur, et ils arrivaient toujours des quatre mêmes coins, ce qui les rendait prévisibles. Plutôt que de simplement augmenter les nombres, j'ai d'abord ajouté des mécaniques qui créent des choix pour le joueur :
+\begin{itemize}
+  \item \textbf{les citrouilles deviennent les munitions du canon.} Le canon n'est plus illimité : le joueur commence chaque nuit avec 2 charges. Pour en gagner, il doit aller jusqu'à une citrouille allumée du village, la viser et appuyer sur E. La citrouille disparaît (\texttt{SetActive(false)}) et réapparaît la nuit suivante, puisque le \texttt{DayNightManager} réactive les décorations de nuit. La nuit pose donc un dilemme : rester protéger le sapin, ou traverser le village, exposé aux chasseurs, pour récupérer des munitions. Le décor sert maintenant au jeu ;
+  \item \textbf{le Krampus}, le démon de Noël des légendes alpines, apparaît une fois par nuit à partir de 5 cadeaux sous le sapin. C'est un chasseur deux fois plus grand, plus lent, avec 20 PV et 3 dégâts par coup, entouré d'une aura rouge. Il n'a pas de script à lui : c'est un prefab de chasseur avec d'autres réglages. Le \texttt{Spawner} le fait apparaître en premier, et un booléen \texttt{bossSpawned}, remis à \texttt{false} dans \texttt{OnEnable()} à chaque nuit, empêche qu'il y en ait deux ;
+  \item \textbf{porter un cadeau ralentit Santa} à 80\,\% de sa vitesse. Le jour devient plus tendu à l'approche de la nuit.
+\end{itemize}
+J'ai ensuite rendu les monstres plus menaçants : ils sont plus rapides (de 3 à 4,2 selon le type, alors que le joueur court à 5), plus nombreux, et ils apparaissent depuis 12 points répartis tout autour du village (le cimetière, les deux forêts et l'entrée du village au sud) au lieu de 4. Le \texttt{Spawner} a aussi été corrigé : quand le point tiré était trop proche du joueur, il abandonnait l'apparition ; il essaie maintenant d'autres points avec une boucle \texttt{for}, et s'arrête au premier point valide avec \texttt{break}. Une première version, trop difficile, a été adoucie après plusieurs parties de test.
+
 \subsection{Nettoyage du code}
 Après ces changements, une partie du code ne servait plus. Je l'ai supprimée pour que le projet ne contienne que ce qui est réellement utilisé :
 \begin{itemize}
@@ -441,6 +450,8 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
 \texttt{cannonDamage} & 5 & dégâts du canon (tue toute créature) \\
 \texttt{cannonCooldown} & 5 s & temps de recharge du canon \\
 \texttt{cannonRadius} & 4 m & rayon de l'explosion \\
+\texttt{chargesPerNight} & 2 & charges de canon au début de chaque nuit \\
+\texttt{carrySpeedFactor} & 0,8 & vitesse de Santa quand il porte un cadeau \\
 \texttt{fire}, \texttt{slow} & -- & actions de l'Input System (clic gauche, clic droit) \\
 \texttt{groundCheckMask} & Ground & layer considéré comme du sol \\
 \texttt{shootMask} & tout sauf Player & couches que le tir peut toucher \\
@@ -459,6 +470,8 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
   \item \texttt{ShootRay} ne touche que les couches de \texttt{shootMask}, c'est-à-dire tout sauf la couche \texttt{Player}, pour que le rayon parti de la caméra (derrière Santa) ne touche pas Santa lui-même.
   \item À chaque frame, \texttt{Update()} envoie \texttt{zqsdValue.magnitude} au paramètre \texttt{Speed} de l'Animator de Santa, qui choisit entre l'animation \texttt{Idle} et l'animation \texttt{Run}.
   \item \texttt{ShootRay} affiche aussi le rayon en rouge dans la vue Scene avec \texttt{Debug.DrawRay}, pour le débogage. \texttt{GetShotEnd} donne le point d'arrivée du trait (l'objet touché, ou 100 m devant), et chaque tir appelle ensuite le script \texttt{WeaponEffects}.
+  \item Le canon consomme une charge (\texttt{cannonCharges}). Sans charge, il ne tire pas. \texttt{ResetCannonCharges()}, appelée par le \texttt{DayNightManager} à la tombée de la nuit, redonne les charges de départ.
+  \item Quand le joueur porte un cadeau, la vitesse de déplacement est multipliée par \texttt{carrySpeedFactor}.
   \item La touche E (action \texttt{Interact}) appelle \texttt{InteractPressed}, qui interagit avec le sapin quand le joueur est dans sa zone. La référence au sapin (\texttt{tree}) est glissée dans l'Inspector.
   \item Si le jeu est en pause (\texttt{Time.timeScale == 0}, pendant le Game Over), \texttt{FirePressed} et \texttt{SlowPressed} s'arrêtent tout de suite.
 \end{itemize}
@@ -562,11 +575,12 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
 \midrule
 \texttt{creaturePrefabs} & Creature & chasseurs possibles, un est tiré au hasard \\
 \texttt{thiefPrefabs} & Thief & voleurs possibles \\
-\texttt{spawnPoints} & SP1 à SP4 & points d'apparition (coins de l'arène) \\
-\texttt{minDistance} & 15 m & distance minimale au joueur \\
+\texttt{spawnPoints} & SP1 à SP12 & points d'apparition autour du village \\
+\texttt{minDistance} & 14 m & distance minimale au joueur \\
+\texttt{bossPrefab}, \texttt{bossMinGifts} & Krampus, 5 & le boss et le nombre de cadeaux à partir duquel il apparaît \\
 \texttt{tree} & GiftZone & pour connaître le nombre de cadeaux $n$ \\
-\texttt{baseMaxCreatures} & 3 & créatures maximum : $3 + n$ \\
-\texttt{baseInterval}, \texttt{intervalPerGift}, \texttt{minInterval} & 4 ; 0,2 ; 1,5 & intervalle : $4 - 0{,}2\,n$, minimum 1,5 s \\
+\texttt{baseMaxCreatures} & 5 & créatures maximum : $5 + n$ \\
+\texttt{baseInterval}, \texttt{intervalPerGift}, \texttt{minInterval} & 3 ; 0,15 ; 1,2 & intervalle : $3 - 0{,}15\,n$, minimum 1,2 s \\
 \texttt{baseThiefChance}, \texttt{thiefChancePerGift}, \texttt{maxThiefChance} & 0,2 ; 0,05 ; 0,8 & part de voleurs : $0{,}2 + 0{,}05\,n$, maximum 0,8 \\
 \bottomrule
 \end{tabular}
@@ -575,8 +589,8 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
 \textbf{Fonctionnement.} À intervalles réguliers (donnés par \texttt{GetInterval()}) :
 \begin{enumerate}
   \item le spawner compte les créatures en vie avec \texttt{FindGameObjectsWithTag("Creature").Length} et s'arrête s'il y en a trop ;
-  \item il tire un point au hasard ;
-  \item si ce point est trop près du joueur, il abandonne pour ce tour ;
+  \item il tire des points au hasard, au plus autant de fois qu'il y a de points, jusqu'à en trouver un assez loin du joueur. S'il n'en trouve aucun, il réessaie au tour suivant ;
+  \item s'il y a assez de cadeaux et que le Krampus n'est pas encore apparu cette nuit, c'est lui qui apparaît ;
   \item sinon, il choisit le type de créature (voleur ou chasseur), puis instancie un prefab de ce type, tiré au hasard, sur ce point.
 \end{enumerate}
 
@@ -601,7 +615,7 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
 
 \textbf{Limites et problèmes connus.}
 \begin{itemize}
-  \item \textbf{Des apparitions sont perdues.} Quand le point tiré est trop près du joueur, on ne réessaie pas tout de suite avec un autre point. Si le joueur se tient dans un coin, environ une tentative sur quatre est perdue. Parcourir les points avec une boucle \texttt{for} pour en trouver un valide corrigerait ce problème.
+  \item \textbf{Le tirage au hasard peut retomber sur le même point.} La boucle tire des points au hasard au lieu de les parcourir dans l'ordre ; elle peut donc, rarement, ne pas trouver de point valide alors qu'il en existe un. Le monstre apparaît alors au tour suivant.
   \item \textbf{Une créature peut apparaître sous les yeux du joueur.} Seule la distance est vérifiée, pas le champ de vision. À 15 m, le joueur peut voir la créature apparaître.
   \item \textbf{Une erreur si les tableaux sont vides.} Si \texttt{spawnPoints} ou \texttt{creaturePrefabs} est vide dans l'Inspector, \texttt{Random.Range(0, 0)} renvoie 0 et l'accès à la case 0 provoque une erreur à chaque tentative. C'est la même chose pour \texttt{thiefPrefabs} dès qu'un voleur est tiré. Une vérification de \texttt{Length} au démarrage éviterait ce cas.
   \item \textbf{La difficulté ne dépend que des cadeaux.} Un joueur qui stagne longtemps à peu de cadeaux aura toujours des nuits faciles. On pourrait aussi tenir compte du numéro de la nuit.
@@ -829,6 +843,19 @@ Max Hp (Health) & 2 & plus fragile qu'un chasseur \\
   \item \textbf{Le trait ne suit pas l'arme.} Ses extrémités sont fixées au moment du tir. Si le joueur tourne pendant les 0,06 s, le trait reste en place, mais c'est trop court pour être visible.
   \item \textbf{Un effet est créé puis détruit à chaque impact.} Pour un jeu avec beaucoup de tirs, on réutiliserait plutôt des effets déjà créés (\emph{pooling}). Ici, la cadence est faible et ça ne pose pas de problème.
   \item \textbf{Le départ du trait et la visée ne sont pas au même endroit.} Le rayon part du centre de la caméra, alors que le trait part du bout de l'arme. Le trait est donc légèrement en biais, ce qui est l'effet habituel dans les jeux de tir.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\subsection{PumpkinAmmo}
+
+\textbf{Rôle.} Faire d'une citrouille de nuit une munition pour le canon.
+
+\textbf{Fonctionnement.} Le script est placé sur chaque citrouille de nuit, qui a son propre collider. Quand le joueur la vise à moins de 3 m et appuie sur E, le \texttt{PlayerController} appelle \texttt{Collect()}, qui désactive la citrouille avec \texttt{SetActive(false)} et renvoie le nombre de charges qu'elle donne (1 par défaut). Comme les citrouilles font partie des décorations de nuit, le \texttt{DayNightManager} les réactive toutes à la tombée de la nuit suivante.
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{Rien n'indique qu'une citrouille est ramassable.} Le joueur doit l'apprendre par le message du HUD. Un contour lumineux ou une info-bulle quand on la vise aiderait.
+  \item \textbf{Le nombre de munitions n'est pas limité.} Un joueur qui ramasse toutes les citrouilles en début de nuit peut accumuler beaucoup de charges.
 \end{itemize}
 
 % ---------------------------------------------------------------------

@@ -4216,6 +4216,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1539409917}
     - target: {fileID: 4289309445196907576, guid: 3d083df1ba6b40447b2cb35ae722f79b, type: 3}
+      propertyPath: chargesPerNight
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4289309445196907576, guid: 3d083df1ba6b40447b2cb35ae722f79b, type: 3}
       propertyPath: dayNightManager
       value: 
       objectReference: {fileID: 1294109688}
@@ -15979,12 +15983,12 @@ MonoBehaviour:
   - {fileID: 1864845502}
   - {fileID: 922859096}
   - {fileID: 1588849829}
-  minDistance: 12
+  minDistance: 14
   tree: {fileID: 467343140}
-  baseMaxCreatures: 6
-  baseInterval: 2.5
+  baseMaxCreatures: 5
+  baseInterval: 3
   intervalPerGift: 0.15
-  minInterval: 0.8
+  minInterval: 1.2
   baseThiefChance: 0.2
   thiefChancePerGift: 0.05
   maxThiefChance: 0.8
