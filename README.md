@@ -7,7 +7,7 @@ Un jeu de tir à la troisième personne (TPS) sur le thème Halloween à Noël, 
 
 **Victoire :** 10 cadeaux sous le sapin. **Défaite :** le joueur meurt. Porter un cadeau ralentit Santa à 80 % de sa vitesse, et le canon de nuit a besoin de munitions : les citrouilles allumées du village. Plus il y a de cadeaux sous le sapin, plus les nuits sont dures. Une partie dure environ 4 à 5 cycles jour/nuit.
 
-Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cadeau cette nuit »). S'il est réussi, un **cadeau doré** apparaît le lendemain : il vaut 2 cadeaux, mais il est plus rapide que les autres.
+Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cadeau cette nuit »). S'il est réussi, le joueur gagne un **cadeau doré** le lendemain (il vaut 2 cadeaux, mais il est plus rapide) s'il a toute sa vie, ou récupère **30 % de sa vie** s'il est blessé.
 
 ## Ouvrir le projet
 
@@ -34,7 +34,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | Raycast | Le tir, la capacité spéciale, le ramassage des cadeaux, et la vérification qu'aucun mur ne sépare une créature du joueur |
 | Prefabs | Le joueur, les créatures (chasseurs et voleurs) et les cadeaux, instanciés par des spawners |
 | Navigation | La NavMesh de l'arène, avec trois comportements : poursuivre le joueur (chasseurs), aller au sapin (voleurs) et fuir le joueur (cadeaux farceurs) |
-| UI | Le viseur et le HUD (vie, phase et chrono, cadeaux, défi, recharge du canon), ainsi que les écrans Game Over et Victoire |
+| UI | Le viseur, la barre de vie (Slider), le flash rouge quand on est touché, les annonces de phase et le compte à rebours, les textes du HUD (phase, cadeaux, défi, canon), ainsi que les écrans Game Over et Victoire |
 | Capacité spéciale | Le clic droit : ralentisseur le jour, canon la nuit |
 | Défi (« recette ») | Le défi de nuit tiré au hasard, récompensé par le cadeau doré |
 | Import d'assets 3D | *Christmas Pack FREE* (ithappy) et *Poly Halloween Pack* (polyperfect), depuis l'Unity Asset Store |
@@ -45,18 +45,18 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | Script | Rôle |
 |---|---|
 | `PlayerController.cs` | Gère le déplacement et la caméra. Le même raycast sert au tir (clic gauche), au ralentisseur (clic droit le jour), au canon à explosion de zone (clic droit la nuit, avec `Physics.OverlapSphere`) et au ramassage des cadeaux (E). Fourni par le prof, puis complété. |
-| `Health.cs` | Gère les points de vie. Utilisé par les créatures et par le joueur. |
+| `Health.cs` | Gère les points de vie (dégâts, soin sans dépasser le maximum, fumée à la mort). Utilisé par les monstres et par le joueur. |
 | `Creature.cs` | Le chasseur : il suit le joueur sur la NavMesh et lui fait des dégâts quand il est proche (et qu'aucun mur ne les sépare), avec un temps de recharge (cooldown). |
 | `PumpkinAmmo.cs` | Une citrouille de nuit qui sert de munition au canon : ramassée avec E, elle disparaît et réapparaît la nuit suivante. |
 | `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), Une partie des créatures sont des voleurs, les autres des chasseurs. Le nombre maximum de créatures, l'intervalle d'apparition et la part de voleurs dépendent du nombre de cadeaux sous le sapin. À partir de 5 cadeaux, le Krampus (un boss) apparaît une fois par nuit. Les 12 points d'apparition sont répartis tout autour du village. |
 | `Thief.cs` | Le voleur va au sapin, prend un cadeau en entrant dans la zone trigger et s'enfuit vers son point d'apparition. S'il est tué ou s'il disparaît à l'aube, le cadeau revient (grâce à `OnDestroy`). |
-| `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel, le brouillard, la lumière ambiante, le post-traitement de nuit et les décorations (neige et bonshommes le jour, citrouilles et épouvantails la nuit), et il n'active le spawner de monstres que la nuit. |
+| `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel, le brouillard, la lumière ambiante (avec un fondu progressif avant chaque changement), le post-traitement de nuit et les décorations (neige et bonshommes le jour, citrouilles et épouvantails la nuit), et il n'active le spawner de monstres que la nuit. |
 | `ChristmasTree.cs` | La zone de dépôt au pied du sapin (un trigger). Il compte les cadeaux, affiche autant de modèles de cadeaux sous le sapin, et permet aux voleurs d'en retirer un. |
 | `Gift.cs` | Le cadeau farceur : il s'enfuit à l'opposé du joueur sur la NavMesh. Il peut être ralenti (30 % de sa vitesse, en cyan, pendant 3 s), et il ne peut être attrapé que dans ce cas. |
 | `GiftSpawner.cs` | Fait apparaître 4 cadeaux farceurs au début de chaque journée, sur des points tirés au hasard. Ils sont plus rapides quand il y a beaucoup de cadeaux sous le sapin. |
 | `WeaponEffects.cs` | Les effets du tir : un trait lumineux (LineRenderer) du bout du sucre d'orge jusqu'à l'impact, avec une couleur selon l'arme, des étincelles, l'explosion du canon et l'animation de recul (`animator.SetTrigger("Fire")`). |
-| `HUD.cs` | Affiche la vie, le nombre de défis réussis, le défi, la phase avec le temps restant, et le nombre de cadeaux. À 10 cadeaux, il affiche l'écran de victoire. À la mort du joueur, il affiche le Game Over, met le jeu en pause et libère la souris. Le bouton Rejouer recharge la scène. |
-| `ChallengeManager.cs` | Le défi de nuit, tiré au hasard parmi trois : « aucun cadeau perdu », « tue X voleurs » ou « tue X créatures au canon ». S'il est réussi, le `DayNightManager` fait apparaître un cadeau doré le lendemain. Il compte aussi les défis réussis. |
+| `HUD.cs` | La barre de vie, le flash rouge quand le joueur perd de la vie, le grand texte des changements de phase (titre et compte à rebours), les textes (défis réussis, défi, phase, cadeaux, arme) et les écrans de Game Over et de Victoire. Le bouton Rejouer recharge la scène. |
+| `ChallengeManager.cs` | Le défi de nuit, tiré au hasard parmi trois : « aucun cadeau perdu », « tue X voleurs » ou « tue X créatures au canon ». S'il est réussi, le `DayNightManager` donne un cadeau doré (joueur avec toute sa vie) ou 30 % de vie (joueur blessé). Il compte aussi les défis réussis. |
 
 ## Avancement
 
@@ -70,7 +70,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - [x] 6. Défi, qui augmente le score et génère un nouveau défi
 - [x] 7. HUD (vie, score, défi en cours) et game over
 
-**Version 2 : le jeu jour/nuit (en cours)**
+**Version 2 : le jeu jour/nuit (terminée)**
 
 - [x] A. Cycle jour/nuit : chrono, lumière, ciel, brouillard, monstres uniquement la nuit
 - [x] B. Le sapin : zone de dépôt, compteur de cadeaux et victoire à 10
@@ -83,6 +83,8 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - [x] H2. Le tir visible : arme en sucre d'orge, trait lumineux (LineRenderer), impacts, explosion du canon et animation de recul
 - [x] H3. Les personnages : Santa en vue TPS (le joueur, animé), les monstres Halloween avec les animations reciblées
 - [x] H4. L'ambiance : neige qui tombe le jour, nuages de fumée (mort des monstres, aube, changement de décor)
+- [x] Rééquilibrage de la difficulté : citrouilles-munitions, Krampus, Santa ralenti avec un cadeau, monstres plus rapides et 12 points d'apparition
+- [x] UX : barre de vie, flash rouge quand on est touché, transition jour/nuit progressive avec compte à rebours, récompense du défi selon la vie
 
 ### Équilibrage prévu (n = nombre de cadeaux sous le sapin)
 

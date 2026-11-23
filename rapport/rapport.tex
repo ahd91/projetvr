@@ -30,7 +30,7 @@
 % Dossier des captures d'écran (à placer dans rapport/images/)
 \graphicspath{{images/}}
 
-\title{ZZ2 -- Réalité virtuelle\\TP final : un FPS d'Halloween à Noël}
+\title{ZZ2 -- Réalité virtuelle\\TP final : Noël contre Halloween}
 \author{Ahmed Ladhari}
 \date{\today}
 
@@ -43,9 +43,9 @@
 % =====================================================================
 \section{Introduction}
 
-Ce TP consiste à réaliser un petit jeu sous Unity qui utilise les notions vues en cours : le raycast, les prefabs, la navigation, l'interface (UI) et l'import d'assets 3D. J'ai choisi le sujet proposé : un jeu de tir à la première personne (FPS) dans un univers Halloween à la période de Noël, inspiré de \emph{L'étrange Noël de Mr Jack}. Le joueur doit combattre des créatures qui apparaissent au fur et à mesure et le poursuivent. Son arme possède une capacité spéciale, et un défi lui est proposé pendant la partie.
+Ce TP consiste à réaliser un petit jeu sous Unity qui utilise les notions vues en cours : le raycast, les prefabs, la navigation, l'interface (UI) et l'import d'assets 3D. J'ai choisi le sujet proposé : un jeu de tir dans un univers Halloween à la période de Noël, inspiré de \emph{L'étrange Noël de Mr Jack}. Le joueur doit combattre des créatures qui apparaissent au fur et à mesure et le poursuivent. Son arme possède une capacité spéciale, et un défi lui est proposé pendant la partie.
 
-Comme conseillé dans le sujet, je me suis d'abord concentré sur la logique du jeu avec des formes simples (cubes et capsules). Les vrais modèles 3D ne sont intégrés qu'à la fin.
+Comme conseillé dans le sujet, je me suis d'abord concentré sur la logique du jeu avec des formes simples (cubes et capsules) : c'est la première version, décrite dans les étapes 1 à 7. Je l'ai ensuite enrichie pour en faire un jeu complet, qui alterne le jour (Noël) et la nuit (Halloween), avec des modèles 3D, des animations et des effets visuels. Le jeu final se joue à la troisième personne (TPS), avec le Père Noël comme personnage.
 
 Le projet a été réalisé avec \textbf{Unity 6} (version 6000.6.9f1), le pipeline de rendu URP, le nouvel Input System et le package \textbf{AI Navigation}.
 
@@ -53,26 +53,28 @@ Le projet a été réalisé avec \textbf{Unity 6} (version 6000.6.9f1), le pipel
 \section{Le jeu}
 
 \subsection{Principe}
+Le jeu alterne deux phases, avec un chrono :
 \begin{itemize}
-  \item Le joueur se déplace dans une arène fermée par des murs, avec quelques obstacles.
-  \item Des créatures apparaissent régulièrement sur des points éloignés du joueur et le poursuivent.
-  \item Au contact, elles lui enlèvent des points de vie.
-  \item Le joueur peut tirer pour tuer les créatures (clic gauche) ou les ralentir avec la capacité spéciale (clic droit).
-  \item Un défi est affiché à l'écran. Quand il est réussi, le score augmente et un nouveau défi est généré.
-  \item Quand le joueur n'a plus de vie, la partie s'arrête et un écran \og Game Over \fg{} permet de rejouer.
+  \item \textbf{le jour, c'est Noël.} Des cadeaux ensorcelés (les \og cadeaux farceurs \fg{}) s'enfuient quand le joueur s'approche. Il faut les ralentir avec l'arme, les attraper et les porter au pied du sapin. Porter un cadeau ralentit le joueur ;
+  \item \textbf{la nuit, c'est Halloween.} Il faut survivre et protéger le sapin. Les \textbf{chasseurs} poursuivent le joueur et l'attaquent ; les \textbf{voleurs} foncent vers le sapin, prennent un cadeau et s'enfuient avec. Un voleur tué avant de s'échapper rend le cadeau. À partir de 5 cadeaux, un boss, le \textbf{Krampus}, apparaît chaque nuit. L'arme devient un canon puissant, qui a besoin de munitions : les citrouilles allumées du village.
 \end{itemize}
+Chaque nuit, un \textbf{défi} est tiré au hasard. S'il est réussi, le joueur gagne un \textbf{cadeau doré} (qui vaut 2) s'il a toute sa vie, ou récupère 30\,\% de sa vie s'il est blessé.
+
+\textbf{Victoire :} 10 cadeaux sous le sapin. \textbf{Défaite :} le joueur n'a plus de vie. Plus il y a de cadeaux sous le sapin, plus les nuits sont difficiles : une partie dure plusieurs cycles jour/nuit.
 
 \subsection{Contrôles}
 \begin{table}[H]
 \centering
-\begin{tabular}{ll}
+\begin{tabular}{lp{11cm}}
 \toprule
 \textbf{Touche} & \textbf{Action} \\
 \midrule
 ZQSD & Se déplacer \\
-Souris & Regarder \\
+Souris & Regarder (caméra au-dessus de l'épaule de Santa) \\
 Clic gauche & Tirer \\
-Clic droit & Capacité spéciale : ralentir la créature visée \\
+Clic droit, le jour & Ralentisseur : ralentit le cadeau visé \\
+Clic droit, la nuit & Canon : explosion de zone, avec un temps de recharge et des munitions \\
+E & Attraper le cadeau visé (ralenti), le déposer au pied du sapin, ou ramasser une citrouille (munition) \\
 Échap & Libérer la souris \\
 \bottomrule
 \end{tabular}
@@ -81,16 +83,22 @@ Clic droit & Capacité spéciale : ralentir la créature visée \\
 \subsection{Organisation des scripts}
 \begin{table}[H]
 \centering
-\begin{tabular}{lp{10cm}}
+\begin{tabular}{lp{10.5cm}}
 \toprule
 \textbf{Script} & \textbf{Rôle} \\
 \midrule
-\texttt{PlayerController} & Déplacement, caméra, tir et capacité spéciale (fourni par le professeur, puis complété) \\
-\texttt{Health} & Points de vie, utilisé par le joueur et par les créatures \\
-\texttt{Creature} & Poursuite du joueur, dégâts au contact, ralentissement \\
-\texttt{Spawner} & Apparition des créatures sur des points éloignés du joueur \\
-\texttt{ChallengeManager} & Génération et vérification des défis, score \\
-\texttt{HUD} & Affichage de la vie, du score, du défi et du Game Over \\
+\texttt{PlayerController} & Déplacement, caméra, tir, ralentisseur, canon et ramassage (fourni par le professeur, puis complété) \\
+\texttt{Health} & Points de vie, utilisé par le joueur et par les monstres \\
+\texttt{Creature} & Chasseur : poursuite du joueur et attaque \\
+\texttt{Thief} & Voleur : vol d'un cadeau au sapin puis fuite \\
+\texttt{Gift}, \texttt{GiftSpawner} & Cadeaux farceurs qui fuient le joueur, et leur apparition chaque jour \\
+\texttt{ChristmasTree} & Zone de dépôt au pied du sapin et compteur de cadeaux \\
+\texttt{Spawner} & Apparition des monstres la nuit, difficulté progressive et Krampus \\
+\texttt{DayNightManager} & Cycle jour/nuit : lumière, ciel, décor, monstres et récompense du défi \\
+\texttt{ChallengeManager} & Défi de nuit tiré au hasard \\
+\texttt{PumpkinAmmo} & Citrouille qui sert de munition au canon \\
+\texttt{WeaponEffects} & Effets visuels des tirs \\
+\texttt{HUD} & Interface : barre de vie, textes, annonces, écrans de fin \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -359,6 +367,15 @@ En jouant la version complète, le jeu s'est révélé beaucoup trop facile. En 
 \end{itemize}
 J'ai ensuite rendu les monstres plus menaçants : ils sont plus rapides (de 3 à 4,2 selon le type, alors que le joueur court à 5), plus nombreux, et ils apparaissent depuis 12 points répartis tout autour du village (le cimetière, les deux forêts et l'entrée du village au sud) au lieu de 4. Le \texttt{Spawner} a aussi été corrigé : quand le point tiré était trop proche du joueur, il abandonnait l'apparition ; il essaie maintenant d'autres points avec une boucle \texttt{for}, et s'arrête au premier point valide avec \texttt{break}. Une première version, trop difficile, a été adoucie après plusieurs parties de test.
 
+\subsection{L'expérience de jeu (UX)}
+En jouant, plusieurs informations importantes passaient inaperçues dans le feu de l'action. J'ai donc retravaillé l'interface :
+\begin{itemize}
+  \item \textbf{une barre de vie} remplace le chiffre \og Vie : 10 \fg{}, peu lisible en pleine action. C'est un composant \emph{Slider} de l'UI (vu dans le cours V), non interactif, que le HUD remplit à chaque frame avec \texttt{healthBar.value = playerHealth.GetHp()} ;
+  \item \textbf{un flash rouge} : un monstre pouvait frapper le joueur dans le dos sans qu'il s'en rende compte. Une image rouge couvre tout l'écran, transparente au repos. Quand la vie baisse par rapport à la frame précédente, le HUD la rend visible d'un coup, puis elle redevient transparente petit à petit avec \texttt{Mathf.MoveTowards} ;
+  \item \textbf{une transition jour/nuit en douceur} : le changement de lumière était brutal. Pendant les 4 dernières secondes de chaque phase, la couleur et l'intensité du soleil et la lumière ambiante passent progressivement à celles de la phase suivante avec \texttt{Color.Lerp} et \texttt{Mathf.Lerp}. Un grand texte au centre de l'écran affiche un compte à rebours (\og La nuit tombe dans 3\ldots \fg{}), puis le titre de la nouvelle phase.
+\end{itemize}
+J'ai aussi modifié la récompense du défi pour donner au joueur un moyen de regagner de la vie, qui n'existait pas : s'il a toute sa vie, il gagne le cadeau doré ; s'il est blessé, il récupère à la place 30\,\% de sa vie maximale.
+
 \subsection{Nettoyage du code}
 Après ces changements, une partie du code ne servait plus. Je l'ai supprimée pour que le projet ne contienne que ce qui est réellement utilisé :
 \begin{itemize}
@@ -369,7 +386,6 @@ Après ces changements, une partie du code ne servait plus. Je l'ai supprimée p
   \item une ligne \texttt{using} qui n'était pas utilisée.
 \end{itemize}
 
-% TODO : compléter si de nouvelles étapes sont ajoutées.
 
 % =====================================================================
 \section{Notions du cours utilisées}
@@ -379,11 +395,14 @@ Après ces changements, une partie du code ne servait plus. Je l'ai supprimée p
 \toprule
 \textbf{Notion} & \textbf{Utilisation dans le projet} \\
 \midrule
-Raycast & Tir et capacité spéciale depuis le centre de l'écran, vérification qu'aucun mur ne sépare une créature du joueur \\
-Prefabs & Le joueur et les créatures, instanciées par le spawner \\
-Navigation & NavMesh calculée sur l'arène, créatures avec un \texttt{NavMeshAgent} \\
-UI & Viseur, HUD (vie, score, défi), panneau Game Over avec un bouton \\
+Raycast & Tir, ralentisseur, canon (point d'impact), ramassage des cadeaux et des citrouilles, vérification qu'aucun mur ne sépare un chasseur du joueur \\
+Prefabs & Le joueur, les 5 monstres (2 chasseurs, 2 voleurs, le Krampus), les cadeaux, la maison, les effets de particules \\
+Navigation & NavMesh calculée sur le village ; trois comportements : poursuivre le joueur (chasseurs), aller au sapin puis fuir (voleurs), fuir le joueur (cadeaux) \\
+UI & Viseur, barre de vie (Slider), textes du HUD, flash rouge, annonces de phase, écrans Game Over et Victoire avec un bouton \\
+Capacité spéciale & Ralentisseur le jour, canon à explosion de zone la nuit \\
+Défi & Défi de nuit tiré au hasard, récompensé par un cadeau doré ou par de la vie \\
 Import d'assets 3D & \emph{Christmas Pack FREE} (ithappy) et \emph{Poly Halloween Pack} (polyperfect), Unity Asset Store \\
+Bonus & Animations (Santa, monstres reciblés, recul de l'arme), particules (étincelles, explosion, fumée, neige), lumières (aura des monstres) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -512,6 +531,7 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
   \item \texttt{TakeDamage(int amount)} retire des PV. Si l'objet est déjà à 0, le coup est ignoré, car \texttt{Destroy} n'agit qu'à la fin de la frame et un deuxième coup pourrait arriver avant.
   \item À 0 PV, si l'objet a aussi un script \texttt{Thief}, \texttt{Health} prévient le \texttt{ChallengeManager} (défi \og tue X voleurs \fg{}).
   \item Quand l'objet est détruit, \texttt{Health} crée d'abord l'effet \texttt{deathEffect} (un nuage de fumée) à sa position, puis programme la destruction de cet effet au bout de 3 secondes.
+  \item \texttt{GetMaxHp()} donne la vie maximale (pour la barre de vie), et \texttt{Heal(int amount)} rend des PV sans dépasser ce maximum, grâce à \texttt{Mathf.Min}.
   \item Le joueur n'est pas détruit (\texttt{destroyOnDeath} décoché), sinon sa caméra disparaîtrait. C'est le HUD qui détecte sa mort avec \texttt{GetHp()}.
 \end{itemize}
 
@@ -520,7 +540,7 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
   \item \textbf{\texttt{Health} connaît les défis.} À la mort, il vérifie si l'objet est un voleur pour prévenir le \texttt{ChallengeManager}. Un script de points de vie ne devrait normalement pas savoir qu'il existe des voleurs et des défis. Ce choix garde le code court, mais si on ajoute d'autres façons de mourir ou d'autres défis, ce script devra encore grossir.
   \item \textbf{Recherche par nom.} \texttt{GameObject.Find("ChallengeManager")} parcourt la scène à chaque mort. C'est acceptable avec 10 créatures au maximum, mais c'est fragile si l'objet est renommé (voir la vue d'ensemble).
   \item \textbf{Les PV sont initialisés dans \texttt{Start()}.} Une créature touchée dans la même frame que son apparition, avant son \texttt{Start()}, aurait encore 0 PV et ignorerait le coup. C'est très peu probable en jeu. L'initialisation dans \texttt{Awake()}, qui est appelée plus tôt, éviterait ce cas.
-  \item \textbf{Les PV ne peuvent que baisser.} Il n'y a pas de soin et pas de maximum vérifié. Ce n'est pas nécessaire pour l'instant.
+  \item \textbf{Le soin est instantané.} \texttt{Heal()} ajoute les PV d'un coup ; une remontée progressive de la barre serait plus agréable à voir.
 \end{itemize}
 
 % ---------------------------------------------------------------------
@@ -645,7 +665,7 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
   \item \texttt{StartChallenge()}, appelée à la tombée de la nuit, remet tout à zéro et tire le type et l'objectif avec \texttt{Random.Range}. On écrit \texttt{max + 1}, car la borne haute de \texttt{Random.Range} sur des entiers est exclue.
   \item \texttt{ThiefKilled()}, \texttt{CannonKill()} et \texttt{GiftLost()} sont appelées par les autres scripts. Chacune ne fait quelque chose que si un défi est actif et s'il est du bon type. Les deux premières font avancer \texttt{progress} ; la troisième met \texttt{failed} à vrai.
   \item \texttt{EndChallenge()}, appelée au lever du jour, termine le défi et renvoie \texttt{true} s'il est réussi. Le défi \og aucun cadeau perdu \fg{} n'est jugé qu'à ce moment-là, puisqu'on ne peut savoir qu'à la fin de la nuit qu'aucun voleur ne s'est échappé.
-  \item \texttt{GetChallengeText()} construit le texte du HUD : le défi en cours la nuit, et le résultat de la nuit précédente le jour. \texttt{GetScore()} renvoie le nombre de défis réussis.
+  \item \texttt{GetChallengeText()} construit le texte du HUD : le défi en cours la nuit, et le résultat de la nuit précédente le jour (cadeau doré ou vie récupérée, selon ce que \texttt{SetReward()} a enregistré). \texttt{GetScore()} renvoie le nombre de défis réussis.
   \item Pour le canon, le \texttt{PlayerController} ne compte que les créatures qui avaient encore des PV avant l'explosion et n'en ont plus après. Une créature déjà morte n'est donc pas comptée deux fois.
 \end{itemize}
 
@@ -654,7 +674,7 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
   \item \textbf{Les types de défi sont des nombres.} \texttt{0}, \texttt{1} et \texttt{2} ne sont pas parlants dans le code. Un \texttt{switch} (vu en cours) ou une énumération rendrait le code plus lisible, surtout si on ajoute d'autres défis.
   \item \textbf{Le même défi peut revenir plusieurs nuits de suite}, puisque le tirage ne tient pas compte du défi précédent.
   \item \textbf{Le défi \og tue X voleurs \fg{} dépend du hasard.} Avec peu de cadeaux sous le sapin, il y a seulement 20\,\% de voleurs. Une nuit peut donc ne pas en contenir assez pour réussir le défi.
-  \item \textbf{Un défi raté n'a pas de conséquence.} On perd seulement la récompense. Une petite pénalité rendrait le défi plus important.
+  \item \textbf{Un défi raté n'a pas de conséquence.} On perd seulement la récompense. Comme c'est aussi le seul moyen de regagner de la vie, le défi reste malgré tout important.
   \item \textbf{Le gestionnaire est trouvé par son nom} par \texttt{Health} et \texttt{Thief}. Si l'objet \texttt{ChallengeManager} est renommé, les défis ne progressent plus, sans message d'erreur.
 \end{itemize}
 
@@ -670,6 +690,8 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
 \textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
 \midrule
 \texttt{dayDuration}, \texttt{nightDuration} & 60 s & durée de chaque phase \\
+\texttt{transitionDuration} & 4 s & durée du fondu de lumière avant chaque changement \\
+\texttt{healPercent} & 0,3 & vie rendue si le défi est réussi et que le joueur est blessé \\
 \texttt{sun} & Directional Light & lumière modifiée selon la phase \\
 \texttt{dayColor}, \texttt{nightColor} & blanc chaud, bleu & couleur du soleil \\
 \texttt{dayIntensity}, \texttt{nightIntensity} & 1 et 0,3 & intensité du soleil \\
@@ -689,12 +711,14 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
   \item Ces deux méthodes règlent la lumière, le ciel, le brouillard, la lumière ambiante et le volume, puis activent ou désactivent le spawner. \texttt{StartDay()} détruit aussi les créatures restantes, qu'elle retrouve par leur Tag.
   \item \texttt{ShowDecorations(bool night)} parcourt les deux tableaux de décorations avec \texttt{foreach} : la nuit, elle active les citrouilles et les épouvantails et cache la neige et les bonshommes, et le jour elle fait l'inverse.
   \item \texttt{SpawnSmoke()} crée un nuage de fumée à une position : sur chaque créature détruite au lever du jour, et sur chaque décoration qui change de phase. Le booléen \texttt{firstPhase} évite ce nuage au tout premier lever du jour, au lancement de la partie.
-  \item \texttt{IsNight()} et \texttt{GetTimeLeft()} permettent aux autres scripts, comme le HUD, de connaître la phase et le temps restant.
+  \item Pendant les \texttt{transitionDuration} dernières secondes d'une phase, \texttt{Update()} calcule un coefficient \texttt{t} qui va de 0 à 1, et mélange les réglages de lumière des deux phases avec \texttt{Color.Lerp} et \texttt{Mathf.Lerp}. Quand la nouvelle phase commence, la lumière est donc déjà à la bonne valeur.
+  \item Au lever du jour, si le défi est réussi, \texttt{StartDay()} regarde la vie du joueur : avec toute sa vie, il fait apparaître le cadeau doré ; sinon, il lui rend 30\,\% de sa vie maximale (arrondi au-dessus avec \texttt{Mathf.CeilToInt}). Il indique au \texttt{ChallengeManager} quelle récompense a été donnée, pour le texte du HUD.
+  \item \texttt{IsNight()}, \texttt{GetTimeLeft()} et \texttt{GetPhaseElapsed()} permettent aux autres scripts, comme le HUD, de connaître la phase et le temps restant.
 \end{itemize}
 
 \textbf{Limites et problèmes connus.}
 \begin{itemize}
-  \item \textbf{La transition est brutale.} La lumière et le ciel changent d'un coup. Un fondu progressif, par exemple avec \texttt{Color.Lerp} sur quelques secondes, serait plus joli.
+  \item \textbf{Le ciel change d'un coup.} La lumière passe progressivement d'une phase à l'autre, mais le skybox est remplacé instantanément au changement de phase.
   \item \textbf{Le soleil ne bouge pas.} Seules sa couleur et son intensité changent. Faire tourner la lumière au cours de la journée donnerait des ombres qui évoluent.
   \item \textbf{Les deux tableaux doivent correspondre.} Rien n'oblige à mettre une citrouille pour chaque tas de neige : si on en oublie une, un emplacement reste vide la nuit.
   \item \textbf{Toutes les références doivent être remplies.} Si une case de l'Inspector est vide (le soleil, un ciel, le volume ou le spawner), le changement de phase provoque une erreur.
@@ -861,7 +885,7 @@ Max Hp (Health) & 2 & plus fragile qu'un chasseur \\
 % ---------------------------------------------------------------------
 \subsection{HUD}
 
-\textbf{Rôle.} Afficher la vie, le score et le défi, et gérer l'écran de fin.
+\textbf{Rôle.} Afficher les informations de la partie (vie, défi, phase, cadeaux, arme), signaler les dégâts et les changements de phase, et gérer les écrans de fin.
 
 \begin{table}[H]
 \centering
@@ -869,30 +893,30 @@ Max Hp (Health) & 2 & plus fragile qu'un chasseur \\
 \toprule
 \textbf{Paramètre} & \textbf{Rôle} \\
 \midrule
-\texttt{healthText}, \texttt{scoreText}, \texttt{challengeText} & les trois textes (\emph{UI > Legacy > Text}) \\
-\texttt{gameOverPanel} & panneau affiché à la mort du joueur \\
-\texttt{playerHealth}, \texttt{challengeManager} & références glissées depuis la Hierarchy \\
+\texttt{healthBar} & barre de vie (\emph{UI > Slider}) \\
+\texttt{damageFlash}, \texttt{flashFadeSpeed} & image rouge plein écran et vitesse à laquelle elle s'efface \\
+\texttt{bigText}, \texttt{countdownSeconds}, \texttt{titleSeconds} & grand texte central : compte à rebours (5 s) et titre de phase (2,5 s) \\
+\texttt{scoreText}, \texttt{challengeText}, \texttt{phaseText}, \texttt{giftText}, \texttt{weaponText} & textes du HUD (\emph{UI > Legacy > Text}) \\
+\texttt{gameOverPanel}, \texttt{victoryPanel} & écrans de fin \\
+\texttt{playerHealth}, \texttt{player}, \texttt{challengeManager}, \texttt{dayNightManager}, \texttt{tree} & références glissées depuis la Hierarchy \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Fonctionnement.}
 \begin{itemize}
-  \item À chaque frame, les textes sont mis à jour : la vie, le score, le défi, la phase avec le temps restant, et le nombre de cadeaux sous le sapin.
-  \item Quand le nombre de cadeaux atteint l'objectif, le HUD affiche l'écran de victoire et met le jeu en pause, comme pour le Game Over.
-  \item Quand \texttt{playerHealth.GetHp()} vaut 0 et que le panneau n'est pas encore affiché, le HUD :
-  \begin{itemize}
-    \item affiche le panneau ;
-    \item met \texttt{Time.timeScale} à 0, ce qui fige les créatures, les cooldowns et le spawner ;
-    \item libère la souris.
-  \end{itemize}
-  \item \texttt{Restart()}, appelée par le bouton, remet \texttt{Time.timeScale} à 1 et recharge la scène avec \texttt{SceneManager.LoadScene}. Pour que cela fonctionne, la scène doit être dans la liste des scènes du build, ce qui est le cas.
+  \item À chaque frame, les textes sont mis à jour : défis réussis, défi en cours, phase et temps restant, cadeaux sous le sapin, et état de l'arme (ralentisseur, ou canon avec ses charges et sa recharge).
+  \item \texttt{UpdateHealth()} règle la barre de vie. Elle compare la vie à celle de la frame précédente (\texttt{lastHp}) : si elle a baissé, l'image rouge devient visible (transparence à 0,45), puis \texttt{Mathf.MoveTowards} la ramène vers 0 à chaque frame.
+  \item \texttt{UpdateBigText()} affiche le titre de la phase pendant ses premières secondes, puis un compte à rebours pendant les dernières, et un texte vide le reste du temps.
+  \item Quand le nombre de cadeaux atteint l'objectif, ou quand la vie du joueur tombe à 0, le HUD affiche l'écran de fin, met \texttt{Time.timeScale} à 0 (ce qui fige les monstres, les cooldowns et le spawner) et libère la souris.
+  \item \texttt{Restart()}, appelée par le bouton \og Rejouer \fg{}, remet \texttt{Time.timeScale} à 1 et recharge la scène avec \texttt{SceneManager.LoadScene}.
 \end{itemize}
 
 \textbf{Limites et problèmes connus.}
 \begin{itemize}
-  \item \textbf{Les textes sont reconstruits à chaque frame.} Les chaînes de caractères sont recréées environ 60 fois par seconde, même quand rien n'a changé. Cela crée des déchets mémoire, que le \emph{garbage collector} devra nettoyer. Ici, c'est négligeable.
-  \item \textbf{Des erreurs en boucle si une référence manque.} Si une case de l'Inspector est vide, \texttt{Update()} provoque une \texttt{NullReferenceException} à chaque frame. C'est le même phénomène que les 999+ erreurs de la créature hors NavMesh.
+  \item \textbf{Le flash rouge n'indique pas d'où vient l'attaque.} Le joueur sait qu'il est touché, mais pas par où. Une flèche ou un dégradé du côté de l'attaquant serait plus précis.
+  \item \textbf{Les textes sont reconstruits à chaque frame.} Les chaînes de caractères sont recréées environ 60 fois par seconde, même quand rien n'a changé. C'est négligeable ici.
+  \item \textbf{Des erreurs en boucle si une référence manque.} Si une case de l'Inspector est vide, \texttt{Update()} provoque une \texttt{NullReferenceException} à chaque frame.
   \item \textbf{Les textes Legacy.} J'ai utilisé l'ancien composant \texttt{Text}, plus simple, plutôt que TextMeshPro, qui est recommandé aujourd'hui par Unity mais demande d'importer des ressources supplémentaires.
 \end{itemize}
 
@@ -967,11 +991,13 @@ Plutôt que d'augmenter la distance, ce qui aurait dépendu de la taille du sapi
 \subsection{Une scène perdue}
 L'ordinateur s'est éteint alors que la scène n'était pas enregistrée. Unity avait créé une copie de secours dans le dossier \texttt{Assets/\_Recovery}, ce qui m'a permis de la récupérer. Depuis, j'enregistre régulièrement avec Ctrl+S.
 
-% TODO : ajouter les problèmes des étapes suivantes.
 
 % =====================================================================
 \section{Conclusion}
-% TODO : à compléter à la fin du projet (ce qui marche, ce qui pourrait être amélioré, ce que j'ai appris).
-\emph{À compléter.}
+Le jeu final remplit les exigences du sujet : les cinq notions obligatoires (raycast, prefabs, navigation, UI et import d'assets 3D) sont utilisées, l'arme possède deux capacités spéciales (le ralentisseur le jour et le canon la nuit), et un défi est généré chaque nuit, avec une récompense. J'ai aussi ajouté plusieurs bonus : des animations (le personnage, les monstres grâce au reciblage, le recul de l'arme) et des particules (impacts, explosion, fumée, neige).
+
+Avancer par petites étapes, en testant chacune avant de passer à la suivante, m'a beaucoup aidé : chaque problème apparaissait seul et était plus facile à comprendre. Plusieurs problèmes rencontrés m'ont appris des points importants d'Unity : un événement de l'Input System doit être désabonné, un trigger a besoin d'un Rigidbody sur l'un des deux objets, un test de distance dépend de la taille des objets et de la forme de la NavMesh, et une interface peut cacher une information au point de faire croire à un bug. J'ai aussi appris qu'un jeu qui fonctionne n'est pas forcément agréable à jouer : il a fallu rééquilibrer la difficulté et retravailler l'interface après avoir joué plusieurs parties.
+
+Parmi les améliorations possibles, la documentation du code en recense plusieurs : empêcher la caméra de traverser les murs, ajouter des animations de déplacement latéral pour Santa, indiquer la direction des attaques, réutiliser les effets de particules au lieu de les recréer, ou encore ajouter du son.
 
 \end{document}

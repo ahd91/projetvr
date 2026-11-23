@@ -46,6 +46,8 @@ public class DayNightManager : MonoBehaviour
 
     [Header("Défi de nuit")]
     [SerializeField] private ChallengeManager challengeManager;
+    [Tooltip("Part de la vie max rendue si le défi est réussi et que le joueur est blessé (0.3 = 30 %)")]
+    [SerializeField] private float healPercent = 0.3f;
 
     [Header("Joueur")]
     [Tooltip("Pour redonner ses charges de canon au joueur à chaque nuit")]
@@ -128,7 +130,7 @@ public class DayNightManager : MonoBehaviour
 
         // Fin du défi de la nuit. S'il est réussi :
         // - joueur avec toute sa vie : un cadeau doré apparaît en plus
-        // - joueur blessé : sa vie est restaurée (pas de cadeau doré)
+        // - joueur blessé : il récupère 30 % de sa vie max (pas de cadeau doré)
         if (challengeManager.EndChallenge())
         {
             Health playerHealth = player.GetComponent<Health>();
@@ -139,7 +141,8 @@ public class DayNightManager : MonoBehaviour
             }
             else
             {
-                playerHealth.HealFull();
+                // Mathf.CeilToInt arrondit au-dessus : 30 % de 10 PV = 3 PV
+                playerHealth.Heal(Mathf.CeilToInt(playerHealth.GetMaxHp() * healPercent));
                 challengeManager.SetReward(false);
             }
         }

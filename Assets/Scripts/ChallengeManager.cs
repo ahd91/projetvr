@@ -114,7 +114,7 @@ public class ChallengeManager : MonoBehaviour
             }
             if (succeeded)
             {
-                return "Défi de la nuit réussi : ta vie a été restaurée !";
+                return "Défi de la nuit réussi : tu as récupéré 30 % de ta vie !";
             }
             return "Défi : il sera tiré à la tombée de la nuit";
         }

@@ -58,10 +58,10 @@ public class Health : MonoBehaviour
         return maxHp;
     }
 
-    // Rend toute la vie (récompense du défi de nuit quand le joueur est blessé)
-    public void HealFull()
+    // Rend des PV, sans dépasser la vie maximale (récompense du défi de nuit quand le joueur est blessé)
+    public void Heal(int amount)
     {
-        hp = maxHp;
-        Debug.Log(name + " : vie restaurée (" + hp + " PV)");
+        hp = Mathf.Min(hp + amount, maxHp); // Mathf.Min : on garde la plus petite des deux valeurs
+        Debug.Log(name + " : +" + amount + " PV (" + hp + " PV)");
     }
 }
