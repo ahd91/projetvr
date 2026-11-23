@@ -8035,7 +8035,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DayNightManager
   dayDuration: 10
-  nightDuration: 100
+  nightDuration: 10
   sun: {fileID: 410087040}
   dayColor: {r: 1, g: 0.95, b: 0.85, a: 1}
   nightColor: {r: 0.4, g: 0.5, b: 1, a: 1}

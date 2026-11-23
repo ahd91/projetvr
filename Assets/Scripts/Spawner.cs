@@ -25,7 +25,14 @@ public class Spawner : MonoBehaviour
     [SerializeField] private float thiefChancePerGift = 0.05f;
     [SerializeField] private float maxThiefChance = 0.8f;
 
+    [Header("Boss : le Krampus")]
+    [Tooltip("Prefab du Krampus (peut rester vide)")]
+    [SerializeField] private GameObject bossPrefab;
+    [Tooltip("Il apparaît une fois par nuit à partir de ce nombre de cadeaux sous le sapin")]
+    [SerializeField] private int bossMinGifts = 5;
+
     private GameObject player;
+    private bool bossSpawned = false; // le Krampus est-il déjà apparu cette nuit ?
     private float nextSpawnTime = 0f;
 
     void Start()
@@ -36,6 +43,8 @@ public class Spawner : MonoBehaviour
     // Appelée par Unity quand le script est activé (le DayNightManager l'active à la tombée de la nuit)
     void OnEnable()
     {
+        bossSpawned = false; // nouvelle nuit : le Krampus pourra apparaître
+
         if (tree != null)
         {
             Debug.Log("Nuit avec " + tree.GetGiftCount() + " cadeaux : max " + GetMaxCreatures()
@@ -67,9 +76,16 @@ public class Spawner : MonoBehaviour
             return;
         }
 
+        // Le Krampus d'abord (une fois par nuit, s'il y a assez de cadeaux), sinon un voleur ou un chasseur.
         // Random.value donne un nombre au hasard entre 0 et 1 : en dessous de la probabilité, c'est un voleur
         GameObject prefab;
-        if (Random.value < GetThiefChance())
+        if (bossPrefab != null && bossSpawned == false && tree.GetGiftCount() >= bossMinGifts)
+        {
+            prefab = bossPrefab;
+            bossSpawned = true;
+            Debug.Log("Le Krampus arrive !");
+        }
+        else if (Random.value < GetThiefChance())
         {
             prefab = thiefPrefabs[Random.Range(0, thiefPrefabs.Length)];
         }

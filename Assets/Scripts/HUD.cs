@@ -58,14 +58,19 @@ public class HUD : MonoBehaviour
         // Arme du clic droit : ralentisseur le jour, canon la nuit (avec sa recharge)
         if (dayNightManager.IsNight())
         {
+            int charges = player.GetCannonCharges();
             float cannonTimeLeft = player.GetCannonTimeLeft();
-            if (cannonTimeLeft <= 0)
+            if (charges <= 0)
             {
-                weaponText.text = "Canon : PRÊT (clic droit)";
+                weaponText.text = "Canon : plus de munitions, ramasse une citrouille (E)";
+            }
+            else if (cannonTimeLeft > 0)
+            {
+                weaponText.text = "Canon : " + charges + " charge(s), recharge " + Mathf.CeilToInt(cannonTimeLeft) + " s";
             }
             else
             {
-                weaponText.text = "Canon : recharge " + Mathf.CeilToInt(cannonTimeLeft) + " s";
+                weaponText.text = "Canon : " + charges + " charge(s), PRÊT (clic droit)";
             }
         }
         else

@@ -48,6 +48,10 @@ public class DayNightManager : MonoBehaviour
     [Header("Défi de nuit")]
     [SerializeField] private ChallengeManager challengeManager;
 
+    [Header("Joueur")]
+    [Tooltip("Pour redonner ses charges de canon au joueur à chaque nuit")]
+    [SerializeField] private PlayerController player;
+
     [Header("Monstres")]
     [Tooltip("Le Spawner n'est actif que la nuit")]
     [SerializeField] private Spawner spawner;
@@ -131,6 +135,7 @@ public class DayNightManager : MonoBehaviour
 
         spawner.enabled = true;
         challengeManager.StartChallenge();
+        player.ResetCannonCharges();
 
         // Les cadeaux farceurs pas attrapés disparaissent à la tombée de la nuit
         GameObject[] gifts = GameObject.FindGameObjectsWithTag("Gift");

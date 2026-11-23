@@ -34,6 +34,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float cannonCooldown = 5f;  // secondes de recharge
     [Tooltip("Rayon de l'explosion autour du point d'impact")]
     [SerializeField] private float cannonRadius = 4f;
+    [Tooltip("Charges de canon au début de chaque nuit (on en gagne avec les citrouilles)")]
+    [SerializeField] private int chargesPerNight = 1;
     [Tooltip("Pour savoir s'il fait jour ou nuit (glisser depuis la Hierarchy)")]
     [SerializeField] private DayNightManager dayNightManager;
     [Tooltip("Pour le défi « tue X créatures au canon » (glisser depuis la Hierarchy)")]
@@ -48,6 +50,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private ChristmasTree tree;
     [Tooltip("Distance maximale pour attraper un cadeau")]
     [SerializeField] private float pickRange = 3f;
+    [Tooltip("Vitesse de Santa quand il porte un cadeau (0.8 = 80 %)")]
+    [SerializeField] private float carrySpeedFactor = 0.8f;
     [Tooltip("Modèle de cadeau tenu devant la caméra (enfant de la Camera, SANS collider)")]
     [SerializeField] private GameObject carriedGiftVisual;
 
@@ -57,6 +61,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 velocity = Vector3.zero;
     private int carriedValue = 0; // valeur du cadeau porté (0 = mains vides)
     private float cannonReadyTime = 0f; // moment où le canon sera rechargé
+    private int cannonCharges = 0;      // munitions du canon (citrouilles ramassées)
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -208,11 +213,17 @@ public class PlayerController : MonoBehaviour
     // La nuit : un tir très puissant, mais il faut attendre la recharge
     private void FireCannon()
     {
+        if (cannonCharges <= 0)
+        {
+            Debug.Log("Plus de munitions : va ramasser une citrouille (E) !");
+            return;
+        }
         if (Time.time < cannonReadyTime)
         {
             Debug.Log("Canon en recharge...");
             return;
         }
+        cannonCharges--;
         cannonReadyTime = Time.time + cannonCooldown;
         Debug.Log("BOUM !");
 
@@ -257,6 +268,18 @@ public class PlayerController : MonoBehaviour
         return cannonReadyTime - Time.time;
     }
 
+    // Utilisée par le HUD
+    public int GetCannonCharges()
+    {
+        return cannonCharges;
+    }
+
+    // Appelée par le DayNightManager à la tombée de la nuit
+    public void ResetCannonCharges()
+    {
+        cannonCharges = chargesPerNight;
+    }
+
     // Touche E : interagir avec le sapin
     private void InteractPressed(InputAction.CallbackContext obj)
     {
@@ -286,6 +309,14 @@ public class PlayerController : MonoBehaviour
         // En vue TPS, la caméra est derrière Santa : on mesure la distance depuis Santa, pas depuis la caméra
         if (ShootRay(out hit) && Vector3.Distance(transform.position, hit.point) <= pickRange)
         {
+            // Une citrouille de nuit : elle donne des munitions au canon
+            PumpkinAmmo pumpkin = hit.collider.GetComponent<PumpkinAmmo>();
+            if (pumpkin != null)
+            {
+                cannonCharges += pumpkin.Collect();
+                Debug.Log("Citrouille ramassée : " + cannonCharges + " charge(s) de canon");
+            }
+
             Gift gift = hit.collider.GetComponent<Gift>();
             if (gift != null)
             {
@@ -334,7 +365,13 @@ public class PlayerController : MonoBehaviour
         {
             animator.SetFloat("Speed", zqsdValue.magnitude);
         }
-        controller.Move(transform.TransformDirection(new Vector3(zqsdValue.x, 0, zqsdValue.y)).normalized * moveSensitivity * Time.deltaTime);
+        // Avec un cadeau dans les bras, Santa avance moins vite
+        float speed = moveSensitivity;
+        if (carriedValue > 0)
+        {
+            speed = moveSensitivity * carrySpeedFactor;
+        }
+        controller.Move(transform.TransformDirection(new Vector3(zqsdValue.x, 0, zqsdValue.y)).normalized * speed * Time.deltaTime);
         
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
