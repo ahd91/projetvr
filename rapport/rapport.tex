@@ -322,6 +322,27 @@ Pour le joueur, j'ai ajouté :
 \end{itemize}
 Ces effets sont regroupés dans le script \texttt{WeaponEffects}, pour ne pas alourdir le \texttt{PlayerController}, qui se contente de l'appeler à chaque tir.
 
+\subsection{Étape H3 : les personnages et leurs animations}
+\paragraph{Santa, en vue à la troisième personne.} Le joueur est maintenant le Père Noël du pack de Noël. En vue à la première personne, on ne verrait jamais son propre personnage ; je suis donc passé en vue à la troisième personne (TPS), que le sujet autorise (\og fps ou tps \fg{}). La caméra est placée au-dessus de l'épaule droite de Santa, le sucre d'orge est dans sa main droite, et le cadeau porté devant lui.
+
+Ce changement de vue a eu deux conséquences sur le code :
+\begin{itemize}
+  \item \textbf{le tir touchait Santa.} La caméra étant derrière lui, le rayon partait à travers son propre collider. J'ai placé tout le joueur sur une couche (\emph{layer}) \texttt{Player}, et le raycast reçoit maintenant un \texttt{LayerMask} qui exclut cette couche : \texttt{Physics.Raycast(ray, out hit, 1000f, shootMask)}. C'est la version du cours avec une distance maximale, à laquelle on ajoute les couches que le rayon a le droit de toucher ;
+  \item \textbf{la distance de ramassage} des cadeaux était mesurée depuis la caméra, qui est maintenant 3 m derrière Santa. Elle est désormais mesurée depuis Santa.
+\end{itemize}
+
+\paragraph{Les animations de Santa.} Le pack fournit Santa avec 27 animations. Un \emph{Animator Controller} contient deux états, \texttt{Idle} et \texttt{Run}, et un paramètre \texttt{Speed}. Les transitions passent de \texttt{Idle} à \texttt{Run} quand \texttt{Speed} dépasse 0,1, et reviennent quand il redescend. À chaque frame, le \texttt{PlayerController} envoie la valeur des touches de déplacement :
+\begin{lstlisting}
+animator.SetFloat("Speed", zqsdValue.magnitude);
+\end{lstlisting}
+L'option \emph{Apply Root Motion} est désactivée : c'est le \emph{CharacterController} qui déplace Santa, pas l'animation.
+
+\paragraph{Les monstres.} Les capsules ont été remplacées par les quatre personnages du pack Halloween : le tueur et la sorcière pour les chasseurs, deux fantômes pour les voleurs. Cela donne quatre prefabs, et le spawner tire maintenant au hasard entre deux formes de chasseurs et deux formes de voleurs. Le modèle est un enfant du prefab, sans collider : le collider, le \texttt{NavMeshAgent} et les scripts restent sur la racine, donc aucun script n'a eu besoin de changer.
+
+Ces personnages n'ont aucune animation, mais ils sont, comme Santa, de type \emph{Humanoid}. Unity peut donc leur appliquer les animations de Santa : c'est le \emph{reciblage} (retargeting) d'animations entre humanoïdes. Les chasseurs jouent l'animation de marche de Santa, et les voleurs, plus rapides, son animation de course.
+
+\paragraph{Lisibilité la nuit.} La nuit, le tueur et la sorcière, habillés de noir, n'étaient que des silhouettes. Une première idée, rendre leur matériau émissif, ne suffisait pas : un vêtement noir qui émet sa propre couleur reste noir. J'ai donc ajouté à chaque monstre une \emph{Point Light}, une petite lumière qui l'éclaire de près : rouge-orangé pour les chasseurs, bleu-vert pour les voleurs. Les monstres restent visibles, et le joueur reconnaît de loin le type de monstre qui arrive. Le matériau des monstres est une copie de celui du pack, car l'original est partagé avec tout le décor Halloween.
+
 % TODO : étapes B à H à compléter au fur et à mesure.
 
 % =====================================================================
@@ -405,6 +426,9 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
 \texttt{cannonRadius} & 4 m & rayon de l'explosion \\
 \texttt{fire}, \texttt{slow} & -- & actions de l'Input System (clic gauche, clic droit) \\
 \texttt{groundCheckMask} & Ground & layer considéré comme du sol \\
+\texttt{shootMask} & tout sauf Player & couches que le tir peut toucher \\
+\texttt{animator} & Animator de Santa & animations Idle / Run \\
+\texttt{pickRange} & 3 m & distance de ramassage, mesurée depuis Santa \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -415,6 +439,8 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
   \item \texttt{ShootRay(out RaycastHit hit)} lance un rayon depuis le centre de l'écran et renvoie \texttt{true} si un objet est touché. Le tir et la capacité utilisent tous les deux cette fonction.
   \item Le tir cherche un composant \texttt{Health} sur l'objet touché.
   \item Le clic droit appelle \texttt{SpecialPressed()}. Le jour, elle appelle \texttt{SlowTarget()}, qui ralentit la \texttt{Creature} ou le \texttt{Gift} touché. La nuit, elle appelle \texttt{FireCannon()} : si le canon est rechargé, elle fait exploser une sphère de rayon \texttt{cannonRadius} au point d'impact avec \texttt{Physics.OverlapSphere}, et inflige \texttt{cannonDamage} à chaque \texttt{Health} touché, sauf au joueur.
+  \item \texttt{ShootRay} ne touche que les couches de \texttt{shootMask}, c'est-à-dire tout sauf la couche \texttt{Player}, pour que le rayon parti de la caméra (derrière Santa) ne touche pas Santa lui-même.
+  \item À chaque frame, \texttt{Update()} envoie \texttt{zqsdValue.magnitude} au paramètre \texttt{Speed} de l'Animator de Santa, qui choisit entre l'animation \texttt{Idle} et l'animation \texttt{Run}.
   \item \texttt{ShootRay} affiche aussi le rayon en rouge dans la vue Scene avec \texttt{Debug.DrawRay}, pour le débogage. \texttt{GetShotEnd} donne le point d'arrivée du trait (l'objet touché, ou 100 m devant), et chaque tir appelle ensuite le script \texttt{WeaponEffects}.
   \item La touche E (action \texttt{Interact}) appelle \texttt{InteractPressed}, qui interagit avec le sapin quand le joueur est dans sa zone. La référence au sapin (\texttt{tree}) est glissée dans l'Inspector.
   \item Si le jeu est en pause (\texttt{Time.timeScale == 0}, pendant le Game Over), \texttt{FirePressed} et \texttt{SlowPressed} s'arrêtent tout de suite.
@@ -427,6 +453,8 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
   \item \textbf{L'explosion traverse les murs.} \texttt{OverlapSphere} prend tout ce qui est dans la sphère, même une créature cachée derrière un obstacle. Un raycast entre le point d'impact et chaque créature corrigerait ce problème, comme pour l'attaque des créatures.
   \item \textbf{Un tir dans le ciel consomme la recharge.} Si le rayon ne touche rien, il n'y a pas d'explosion, mais il faut quand même attendre 5 secondes.
   \item \textbf{Le nom de l'action est resté \texttt{slow}.} L'action du clic droit sert maintenant aux deux armes, mais elle n'a pas été renommée, pour ne pas perdre la référence dans l'Inspector.
+  \item \textbf{La caméra peut traverser les murs.} En vue TPS, elle est 3 m derrière Santa : quand il est dos à une maison, la caméra passe dans le mur. Un raycast entre Santa et la caméra permettrait de la rapprocher dans ce cas.
+  \item \textbf{Santa court toujours vers l'avant.} Il n'y a qu'une animation de course, même quand le joueur se déplace en arrière ou sur le côté. Un \emph{Blend Tree} avec plusieurs directions corrigerait ce problème.
   \item \textbf{Le saut ne fonctionne pas.} L'action \texttt{jump} est activée mais jamais lue dans \texttt{Update()}. C'est le cas depuis le code fourni, et le jeu n'en a pas besoin pour l'instant.
   \item \textbf{La sensibilité de la souris dépend du nombre d'images par seconde.} Le déplacement de la souris (\texttt{delta}) correspond déjà au mouvement depuis la dernière frame. Le multiplier en plus par \texttt{Time.deltaTime} fait que la caméra tourne moins vite quand le jeu tourne plus vite. C'est un détail du code fourni que je n'ai pas modifié.
   \item \textbf{Code inutile.} La ligne \texttt{using UnityEngine.Events;} n'est pas utilisée. La classe C\# générée \texttt{Input Actions.cs} n'est pas utilisée non plus, car les actions passent par des \texttt{InputActionReference}.
