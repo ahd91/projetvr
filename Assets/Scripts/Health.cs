@@ -51,4 +51,17 @@ public class Health : MonoBehaviour
     {
         return hp;
     }
+
+    // Utilisée par la barre de vie (valeur maximale) et pour savoir si le joueur a toute sa vie
+    public int GetMaxHp()
+    {
+        return maxHp;
+    }
+
+    // Rend toute la vie (récompense du défi de nuit quand le joueur est blessé)
+    public void HealFull()
+    {
+        hp = maxHp;
+        Debug.Log(name + " : vie restaurée (" + hp + " PV)");
+    }
 }

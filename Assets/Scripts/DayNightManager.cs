@@ -15,6 +15,9 @@ public class DayNightManager : MonoBehaviour
     [SerializeField] private float dayIntensity = 1f;
     [SerializeField] private float nightIntensity = 0.3f;
 
+    [Tooltip("Durée du fondu de lumière avant chaque changement de phase (secondes)")]
+    [SerializeField] private float transitionDuration = 4f;
+
     [Header("Ciel (matériaux skybox)")]
     [SerializeField] private Material daySkybox;
     [SerializeField] private Material nightSkybox;
@@ -55,6 +58,7 @@ public class DayNightManager : MonoBehaviour
     private bool isNight = false;
     private float phaseEndTime = 0f; // moment où la phase actuelle se termine
     private bool firstPhase = true;  // pas de fumée au tout premier lever du jour (début de partie)
+    private float phaseStartTime = 0f; // moment où la phase actuelle a commencé
 
     void Start()
     {
@@ -63,6 +67,25 @@ public class DayNightManager : MonoBehaviour
 
     void Update()
     {
+        // Les dernières secondes de la phase : la lumière passe petit à petit à celle de la phase suivante
+        float timeLeft = GetTimeLeft();
+        if (timeLeft < transitionDuration)
+        {
+            float t = 1f - timeLeft / transitionDuration; // va de 0 (début du fondu) à 1 (fin)
+            if (isNight)
+            {
+                sun.color = Color.Lerp(nightColor, dayColor, t);
+                sun.intensity = Mathf.Lerp(nightIntensity, dayIntensity, t);
+                RenderSettings.ambientIntensity = Mathf.Lerp(nightAmbient, 1f, t);
+            }
+            else
+            {
+                sun.color = Color.Lerp(dayColor, nightColor, t);
+                sun.intensity = Mathf.Lerp(dayIntensity, nightIntensity, t);
+                RenderSettings.ambientIntensity = Mathf.Lerp(1f, nightAmbient, t);
+            }
+        }
+
         // La phase est terminée : on passe à l'autre
         if (Time.time >= phaseEndTime)
         {
@@ -80,6 +103,7 @@ public class DayNightManager : MonoBehaviour
     private void StartDay()
     {
         isNight = false;
+        phaseStartTime = Time.time;
         phaseEndTime = Time.time + dayDuration;
 
         sun.color = dayColor;
@@ -102,10 +126,22 @@ public class DayNightManager : MonoBehaviour
 
         giftSpawner.SpawnGifts();
 
-        // Fin du défi de la nuit : s'il est réussi, un cadeau doré apparaît en plus
+        // Fin du défi de la nuit. S'il est réussi :
+        // - joueur avec toute sa vie : un cadeau doré apparaît en plus
+        // - joueur blessé : sa vie est restaurée (pas de cadeau doré)
         if (challengeManager.EndChallenge())
         {
-            giftSpawner.SpawnGoldenGift();
+            Health playerHealth = player.GetComponent<Health>();
+            if (playerHealth.GetHp() >= playerHealth.GetMaxHp())
+            {
+                giftSpawner.SpawnGoldenGift();
+                challengeManager.SetReward(true);
+            }
+            else
+            {
+                playerHealth.HealFull();
+                challengeManager.SetReward(false);
+            }
         }
 
         firstPhase = false;
@@ -116,6 +152,7 @@ public class DayNightManager : MonoBehaviour
     private void StartNight()
     {
         isNight = true;
+        phaseStartTime = Time.time;
         phaseEndTime = Time.time + nightDuration;
 
         sun.color = nightColor;
@@ -174,6 +211,12 @@ public class DayNightManager : MonoBehaviour
     public bool IsNight()
     {
         return isNight;
+    }
+
+    // Temps écoulé depuis le début de la phase (pour le HUD : grand titre au début de chaque phase)
+    public float GetPhaseElapsed()
+    {
+        return Time.time - phaseStartTime;
     }
 
     // Temps restant avant le changement de phase (pour le HUD)

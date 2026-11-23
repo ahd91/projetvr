@@ -18,6 +18,7 @@ public class ChallengeManager : MonoBehaviour
     private bool succeeded = false;  // le défi de cette nuit est-il réussi ?
     private bool failed = false;     // pour le type 0 : un cadeau a-t-il été perdu ?
     private int score = 0;           // nombre de défis réussis depuis le début
+    private bool rewardGolden = true; // récompense donnée : true = cadeau doré, false = vie restaurée
 
     // Appelée par le DayNightManager à la tombée de la nuit
     public void StartChallenge()
@@ -107,9 +108,13 @@ public class ChallengeManager : MonoBehaviour
         // Le jour : on rappelle le résultat de la nuit précédente
         if (active == false)
         {
-            if (succeeded)
+            if (succeeded && rewardGolden)
             {
                 return "Défi de la nuit réussi : attrape le cadeau doré (il vaut 2) !";
+            }
+            if (succeeded)
+            {
+                return "Défi de la nuit réussi : ta vie a été restaurée !";
             }
             return "Défi : il sera tiré à la tombée de la nuit";
         }
@@ -138,6 +143,12 @@ public class ChallengeManager : MonoBehaviour
             text = text + " - RÉUSSI !";
         }
         return text;
+    }
+
+    // Appelée par le DayNightManager pour dire quelle récompense a été donnée
+    public void SetReward(bool golden)
+    {
+        rewardGolden = golden;
     }
 
     public int GetScore()
