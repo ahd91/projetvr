@@ -5,6 +5,12 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [Header("Camera")] [SerializeField] private Camera cam;
+    [Tooltip("Couches que le tir peut toucher : tout sauf la couche Player (sinon, en vue TPS, le rayon toucherait Santa)")]
+    [SerializeField] private LayerMask shootMask = ~0;
+
+    [Header("Animation")]
+    [Tooltip("Animator de Santa (paramètre float « Speed »)")]
+    [SerializeField] private Animator animator;
     [Header("Movement")]
     [SerializeField] private float camSensitivity;
     [SerializeField] private float moveSensitivity;
@@ -125,7 +131,8 @@ public class PlayerController : MonoBehaviour
         Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2.0f, Screen.height / 2.0f, 0));
         // Comme dans le cours : rayon visible dans la vue Scene pour déboguer (pas dans le jeu)
         Debug.DrawRay(ray.origin, ray.direction * 100f, Color.red, 1f);
-        return Physics.Raycast(ray, out hit);
+        // 1000 = distance maximale du rayon ; shootMask = couches qu'il peut toucher
+        return Physics.Raycast(ray, out hit, 1000f, shootMask);
     }
 
     // Point où s'arrête le trait du tir : l'objet touché, ou loin devant si on n'a rien touché
@@ -289,7 +296,8 @@ public class PlayerController : MonoBehaviour
 
         // 2) Mains vides : on essaie d'attraper le cadeau visé, s'il est assez proche
         RaycastHit hit;
-        if (ShootRay(out hit) && hit.distance <= pickRange)
+        // En vue TPS, la caméra est derrière Santa : on mesure la distance depuis Santa, pas depuis la caméra
+        if (ShootRay(out hit) && Vector3.Distance(transform.position, hit.point) <= pickRange)
         {
             Gift gift = hit.collider.GetComponent<Gift>();
             if (gift != null)
@@ -333,6 +341,12 @@ public class PlayerController : MonoBehaviour
         transform.Rotate(Vector3.up * mouseX);
         
         Vector2 zqsdValue = zqsd.action.ReadValue<Vector2>();
+
+        // Animation de Santa : Speed vaut 0 à l'arrêt et 1 quand on appuie sur une touche de déplacement
+        if (animator != null)
+        {
+            animator.SetFloat("Speed", zqsdValue.magnitude);
+        }
         controller.Move(transform.TransformDirection(new Vector3(zqsdValue.x, 0, zqsdValue.y)).normalized * moveSensitivity * Time.deltaTime);
         
         velocity.y += gravity * Time.deltaTime;
