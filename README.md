@@ -49,7 +49,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | `Creature.cs` | La créature suit le joueur sur la NavMesh et lui fait des dégâts quand elle est proche, avec un temps de recharge (cooldown). Elle peut être ralentie : elle passe à 30 % de sa vitesse et devient cyan pendant 3 s. |
 | `Spawner.cs` | Fait apparaître une créature toutes les X secondes, sur un point de spawn éloigné du joueur (pour éviter le spawn kill), Une partie des créatures sont des voleurs, les autres des chasseurs. Le nombre maximum de créatures, l'intervalle d'apparition et la part de voleurs dépendent du nombre de cadeaux sous le sapin. |
 | `Thief.cs` | Le voleur va au sapin, prend un cadeau en entrant dans la zone trigger et s'enfuit vers son point d'apparition. S'il est tué ou s'il disparaît à l'aube, le cadeau revient (grâce à `OnDestroy`). |
-| `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel, le brouillard, la lumière ambiante et le post-traitement de nuit, et il n'active le spawner de monstres que la nuit. |
+| `DayNightManager.cs` | Alterne le jour et la nuit avec un chrono. Il change la lumière, le ciel, le brouillard, la lumière ambiante, le post-traitement de nuit et les décorations (neige et bonshommes le jour, citrouilles et épouvantails la nuit), et il n'active le spawner de monstres que la nuit. |
 | `ChristmasTree.cs` | La zone de dépôt au pied du sapin (un trigger). Il compte les cadeaux, affiche autant de modèles de cadeaux sous le sapin, et permet aux voleurs d'en retirer un. |
 | `Gift.cs` | Le cadeau farceur : il s'enfuit à l'opposé du joueur sur la NavMesh. Il peut être ralenti, et il ne peut être attrapé que dans ce cas. |
 | `GiftSpawner.cs` | Fait apparaître 4 cadeaux farceurs au début de chaque journée, sur des points tirés au hasard. Ils sont plus rapides quand il y a beaucoup de cadeaux sous le sapin. |
@@ -78,7 +78,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - [x] E. Les voleurs : ils vont au sapin, prennent un cadeau et s'enfuient ; un voleur tué rend le cadeau
 - [x] F. La difficulté progressive selon le nombre de cadeaux
 - [x] G. Le défi de nuit et sa récompense, le cadeau doré
-- [x] H1. La carte : un village enneigé autour du sapin, un cimetière au nord (l'entrée des monstres), une forêt d'arbres morts sur les côtés et des maisons en pain d'épice
+- [x] H1. La carte : un village enneigé autour du sapin, un cimetière au nord (l'entrée des monstres), une forêt d'arbres morts sur les côtés et des maisons en pain d'épice. La nuit, les tas de neige deviennent des citrouilles allumées et les bonshommes de neige des épouvantails
 - [x] H2. Le tir visible : arme en sucre d'orge, trait lumineux (LineRenderer), impacts, explosion du canon et animation de recul
 - [ ] H3. Les personnages : Santa en vue TPS (le joueur, animé), les monstres Halloween avec les animations reciblées
 - [ ] H4. L'ambiance : lumières de nuit, fumée, son

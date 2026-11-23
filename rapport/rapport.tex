@@ -292,6 +292,22 @@ L'arène carrée entourée de murs gris, avec ses quelques cubes, n'était ni be
 \end{itemize}
 Les quatre murs de l'arène sont restés, mais ils sont devenus invisibles : leur \emph{Mesh Renderer} est désactivé et leur \emph{Box Collider} est conservé. Ils empêchent toujours de sortir de la carte, et c'est le décor qui marque visuellement la limite. Le sol utilise un matériau de neige.
 
+Pour que la nuit ressemble vraiment à Halloween, une partie du décor change avec la phase : la nuit, les tas de neige deviennent des citrouilles allumées et les bonshommes de neige des épouvantails. Les citrouilles et les épouvantails sont posés à la même place que la décoration de jour qu'ils remplacent. Le \texttt{DayNightManager} a deux tableaux d'objets, \texttt{dayDecorations} et \texttt{nightDecorations}, remplis dans l'Inspector. À chaque changement de phase, il parcourt ces tableaux et active l'un et désactive l'autre avec \texttt{SetActive} :
+\begin{lstlisting}
+private void ShowDecorations(bool night)
+{
+    foreach (GameObject decoration in dayDecorations)
+    {
+        decoration.SetActive(night == false);
+    }
+    foreach (GameObject decoration in nightDecorations)
+    {
+        decoration.SetActive(night);
+    }
+}
+\end{lstlisting}
+Avec le bloom du post-traitement de nuit, la lumière des citrouilles ressort dans l'obscurité.
+
 La carte a aussi un sens pour le jeu. Les monstres apparaissent derrière la grille du cimetière et aux deux chemins de la forêt : on voit d'où ils arrivent, et on peut intercepter les voleurs sur leur trajet vers le sapin. Les cadeaux farceurs apparaissent dans les ruelles, loin du sapin, pour obliger le joueur à traverser le village. Après la construction, j'ai recalculé la NavMesh : elle contourne maintenant les maisons, les tombes et les arbres.
 
 \subsection{Étape H2 : un tir visible}
@@ -603,6 +619,7 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
 \texttt{dayIntensity}, \texttt{nightIntensity} & 1 et 0,3 & intensité du soleil \\
 \texttt{daySkybox}, \texttt{nightSkybox} & Skybox\_8, M\_Skybox\_Night & ciel de chaque phase \\
 \texttt{nightVolume} & NightVolume & post-traitement de nuit \\
+\texttt{dayDecorations}, \texttt{nightDecorations} & tas de neige et bonshommes ; citrouilles et épouvantails & décor qui change avec la phase \\
 \texttt{fogColor}, \texttt{nightAmbient} & bleu nuit, 0,4 & brouillard et lumière ambiante la nuit \\
 \texttt{spawner} & Spawner & actif uniquement la nuit \\
 \bottomrule
@@ -613,6 +630,7 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
 \begin{itemize}
   \item \texttt{Update()} compare \texttt{Time.time} à \texttt{phaseEndTime}. Quand la phase est terminée, il appelle \texttt{StartDay()} ou \texttt{StartNight()}.
   \item Ces deux méthodes règlent la lumière, le ciel, le brouillard, la lumière ambiante et le volume, puis activent ou désactivent le spawner. \texttt{StartDay()} détruit aussi les créatures restantes, qu'elle retrouve par leur Tag.
+  \item \texttt{ShowDecorations(bool night)} parcourt les deux tableaux de décorations avec \texttt{foreach} : la nuit, elle active les citrouilles et les épouvantails et cache la neige et les bonshommes, et le jour elle fait l'inverse.
   \item \texttt{IsNight()} et \texttt{GetTimeLeft()} permettent aux autres scripts, comme le HUD, de connaître la phase et le temps restant.
 \end{itemize}
 
@@ -621,6 +639,8 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
   \item \textbf{La transition est brutale.} La lumière et le ciel changent d'un coup. Un fondu progressif, par exemple avec \texttt{Color.Lerp} sur quelques secondes, serait plus joli.
   \item \textbf{Le soleil ne bouge pas.} Seules sa couleur et son intensité changent. Faire tourner la lumière au cours de la journée donnerait des ombres qui évoluent.
   \item \textbf{Les créatures disparaissent d'un coup à l'aube}, sans effet visuel. Un nuage de fumée (particules du pack de Noël) est prévu à l'étape H.
+  \item \textbf{Les décorations changent d'un coup}, sans transition. Un petit nuage de fumée au moment du changement rendrait la transformation plus magique.
+  \item \textbf{Les deux tableaux doivent correspondre.} Rien n'oblige à mettre une citrouille pour chaque tas de neige : si on en oublie une, un emplacement reste vide la nuit.
   \item \textbf{Toutes les références doivent être remplies.} Si une case de l'Inspector est vide (le soleil, un ciel, le volume ou le spawner), le changement de phase provoque une erreur.
   \item \textbf{Les réglages de brouillard sont partagés.} Le mode et la densité viennent de la fenêtre \emph{Lighting}, mais la couleur vient du script. Une partie du réglage est donc dans l'éditeur et l'autre dans le code.
 \end{itemize}

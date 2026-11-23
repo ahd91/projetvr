@@ -27,6 +27,12 @@ public class DayNightManager : MonoBehaviour
     [Tooltip("Lumière ambiante la nuit (1 = comme le jour)")]
     [SerializeField] private float nightAmbient = 0.4f;
 
+    [Header("Décorations")]
+    [Tooltip("Décorations visibles seulement le jour (les tas de neige)")]
+    [SerializeField] private GameObject[] dayDecorations;
+    [Tooltip("Décorations visibles seulement la nuit (les citrouilles, à la même place)")]
+    [SerializeField] private GameObject[] nightDecorations;
+
     [Header("Cadeaux")]
     [Tooltip("Fait apparaître les cadeaux farceurs au début de chaque jour")]
     [SerializeField] private GiftSpawner giftSpawner;
@@ -74,6 +80,7 @@ public class DayNightManager : MonoBehaviour
         RenderSettings.ambientIntensity = 1f;
         DynamicGI.UpdateEnvironment(); // recalcule la lumière ambiante avec le nouveau ciel
         nightVolume.SetActive(false);
+        ShowDecorations(false);
 
         // Le jour, plus de monstres : on arrête le spawner et on fait disparaître ceux qui restent
         spawner.enabled = false;
@@ -107,6 +114,7 @@ public class DayNightManager : MonoBehaviour
         RenderSettings.ambientIntensity = nightAmbient; // la scène est moins éclairée par le ciel
         DynamicGI.UpdateEnvironment();
         nightVolume.SetActive(true); // post-traitement de nuit : bloom, vignette, couleurs froides
+        ShowDecorations(true);
 
         spawner.enabled = true;
         challengeManager.StartChallenge();
@@ -119,6 +127,19 @@ public class DayNightManager : MonoBehaviour
         }
 
         Debug.Log("La nuit tombe : c'est Halloween !");
+    }
+
+    // Affiche les décorations de la phase : la neige le jour, les citrouilles la nuit
+    private void ShowDecorations(bool night)
+    {
+        foreach (GameObject decoration in dayDecorations)
+        {
+            decoration.SetActive(night == false);
+        }
+        foreach (GameObject decoration in nightDecorations)
+        {
+            decoration.SetActive(night);
+        }
     }
 
     // Utilisée par les autres scripts (HUD, arme...) pour savoir dans quelle phase on est
