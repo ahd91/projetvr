@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
@@ -20,7 +19,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private InputActionReference zqsd;
     [SerializeField] private InputActionReference mouseMovement;
     [SerializeField] private InputActionReference fire;
-    [SerializeField] private InputActionReference jump;
     [SerializeField] private InputActionReference slow;
     [SerializeField] private InputActionReference interact;
     
@@ -71,11 +69,6 @@ public class PlayerController : MonoBehaviour
         if (mouseMovement)
         {
             mouseMovement.action.Enable();
-        }
-
-        if (jump)
-        {
-            jump.action.Enable();
         }
 
         if (fire)
@@ -191,7 +184,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // Le jour : ralentit la créature ou le cadeau visé
+    // Le jour : ralentit le cadeau visé
     private void SlowTarget()
     {
         RaycastHit hit;
@@ -204,12 +197,6 @@ public class PlayerController : MonoBehaviour
 
         if (touched)
         {
-            Creature creature = hit.collider.GetComponent<Creature>();
-            if (creature != null)
-            {
-                creature.Slow(slowDuration);
-            }
-
             Gift gift = hit.collider.GetComponent<Gift>();
             if (gift != null)
             {

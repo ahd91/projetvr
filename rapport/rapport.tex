@@ -351,6 +351,16 @@ Pour finir, j'ai ajouté plusieurs détails qui renforcent l'alternance entre No
   \item \textbf{la gestion du son} : une musique de jour et une musique de nuit (deux \emph{AudioSource} en boucle, que le \texttt{DayNightManager} lance et arrête avec \texttt{Play()} et \texttt{Stop()}), et un son pour chaque arme, joué avec \texttt{audioSource.PlayOneShot(son)}. \texttt{PlayOneShot} permet de superposer plusieurs sons quand les tirs sont rapprochés. Chaque appel vérifie d'abord que le son existe, ce qui permet au jeu de fonctionner même si un son n'a pas été fourni.
 \end{itemize}
 
+\subsection{Nettoyage du code}
+Après ces changements, une partie du code ne servait plus. Je l'ai supprimée pour que le projet ne contienne que ce qui est réellement utilisé :
+\begin{itemize}
+  \item \textbf{le ralentissement des créatures} : depuis l'étape D, le clic droit est un canon la nuit, et les créatures n'existent que la nuit. Il ne pouvait donc plus les toucher. Le ralentissement ne s'applique plus qu'aux cadeaux farceurs, le jour ;
+  \item \textbf{l'action de saut} du code fourni, activée mais jamais lue ;
+  \item \textbf{la classe C\# générée} à partir du fichier \emph{Input Actions}, inutile puisque les actions passent par des \texttt{InputActionReference} (j'ai décoché \emph{Generate C\# Class} dans les réglages d'import du fichier) ;
+  \item \textbf{les fichiers du tutoriel} fournis avec le modèle de projet Unity (\texttt{TutorialInfo}, \texttt{Readme}) ;
+  \item une ligne \texttt{using} qui n'était pas utilisée.
+\end{itemize}
+
 % TODO : compléter si de nouvelles étapes sont ajoutées.
 
 % =====================================================================
@@ -392,7 +402,7 @@ Les scripts se retrouvent entre eux de trois façons, toutes vues en cours :
 \textbf{Script appelant} & \textbf{Méthode appelée} & \textbf{Quand} \\
 \midrule
 \texttt{PlayerController} & \texttt{Health.TakeDamage()} & tir ou canon qui touche \\
-\texttt{PlayerController} & \texttt{Creature.Slow()}, \texttt{Gift.Slow()} & ralentisseur (clic droit le jour) \\
+\texttt{PlayerController} & \texttt{Gift.Slow()} & ralentisseur (clic droit le jour) \\
 \texttt{PlayerController} & \texttt{ChristmasTree.AddGift()} & dépôt d'un cadeau (E) \\
 \texttt{PlayerController} & \texttt{ChallengeManager.CannonKill()} & créature tuée au canon \\
 \texttt{Creature} & \texttt{Health.TakeDamage()} du joueur & créature assez proche \\
@@ -446,7 +456,7 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
   \item Dans \texttt{Start()}, les actions sont activées, et les fonctions \texttt{FirePressed} et \texttt{SlowPressed} sont abonnées aux événements \texttt{performed}. Elles sont désabonnées dans \texttt{OnDestroy()}.
   \item \texttt{ShootRay(out RaycastHit hit)} lance un rayon depuis le centre de l'écran et renvoie \texttt{true} si un objet est touché. Le tir et la capacité utilisent tous les deux cette fonction.
   \item Le tir cherche un composant \texttt{Health} sur l'objet touché.
-  \item Le clic droit appelle \texttt{SpecialPressed()}. Le jour, elle appelle \texttt{SlowTarget()}, qui ralentit la \texttt{Creature} ou le \texttt{Gift} touché. La nuit, elle appelle \texttt{FireCannon()} : si le canon est rechargé, elle fait exploser une sphère de rayon \texttt{cannonRadius} au point d'impact avec \texttt{Physics.OverlapSphere}, et inflige \texttt{cannonDamage} à chaque \texttt{Health} touché, sauf au joueur.
+  \item Le clic droit appelle \texttt{SpecialPressed()}. Le jour, elle appelle \texttt{SlowTarget()}, qui ralentit le cadeau (\texttt{Gift}) touché. La nuit, elle appelle \texttt{FireCannon()} : si le canon est rechargé, elle fait exploser une sphère de rayon \texttt{cannonRadius} au point d'impact avec \texttt{Physics.OverlapSphere}, et inflige \texttt{cannonDamage} à chaque \texttt{Health} touché, sauf au joueur.
   \item \texttt{ShootRay} ne touche que les couches de \texttt{shootMask}, c'est-à-dire tout sauf la couche \texttt{Player}, pour que le rayon parti de la caméra (derrière Santa) ne touche pas Santa lui-même.
   \item À chaque frame, \texttt{Update()} envoie \texttt{zqsdValue.magnitude} au paramètre \texttt{Speed} de l'Animator de Santa, qui choisit entre l'animation \texttt{Idle} et l'animation \texttt{Run}.
   \item \texttt{ShootRay} affiche aussi le rayon en rouge dans la vue Scene avec \texttt{Debug.DrawRay}, pour le débogage. \texttt{GetShotEnd} donne le point d'arrivée du trait (l'objet touché, ou 100 m devant), et chaque tir appelle ensuite le script \texttt{WeaponEffects}.
@@ -463,9 +473,8 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
   \item \textbf{Le nom de l'action est resté \texttt{slow}.} L'action du clic droit sert maintenant aux deux armes, mais elle n'a pas été renommée, pour ne pas perdre la référence dans l'Inspector.
   \item \textbf{La caméra peut traverser les murs.} En vue TPS, elle est 3 m derrière Santa : quand il est dos à une maison, la caméra passe dans le mur. Un raycast entre Santa et la caméra permettrait de la rapprocher dans ce cas.
   \item \textbf{Santa court toujours vers l'avant.} Il n'y a qu'une animation de course, même quand le joueur se déplace en arrière ou sur le côté. Un \emph{Blend Tree} avec plusieurs directions corrigerait ce problème.
-  \item \textbf{Le saut ne fonctionne pas.} L'action \texttt{jump} est activée mais jamais lue dans \texttt{Update()}. C'est le cas depuis le code fourni, et le jeu n'en a pas besoin pour l'instant.
   \item \textbf{La sensibilité de la souris dépend du nombre d'images par seconde.} Le déplacement de la souris (\texttt{delta}) correspond déjà au mouvement depuis la dernière frame. Le multiplier en plus par \texttt{Time.deltaTime} fait que la caméra tourne moins vite quand le jeu tourne plus vite. C'est un détail du code fourni que je n'ai pas modifié.
-  \item \textbf{Code inutile.} La ligne \texttt{using UnityEngine.Events;} n'est pas utilisée. La classe C\# générée \texttt{Input Actions.cs} n'est pas utilisée non plus, car les actions passent par des \texttt{InputActionReference}.
+  \item \textbf{Pas de saut.} Le code fourni activait une action \texttt{jump} sans jamais la lire ; je l'ai retirée, car le jeu n'a pas besoin de saut.
 \end{itemize}
 
 % ---------------------------------------------------------------------
@@ -505,7 +514,7 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
 % ---------------------------------------------------------------------
 \subsection{Creature}
 
-\textbf{Rôle.} Poursuivre le joueur, l'attaquer quand elle est proche, et pouvoir être ralentie.
+\textbf{Rôle.} Le chasseur : poursuivre le joueur et l'attaquer quand il est proche.
 
 \begin{table}[H]
 \centering
@@ -516,7 +525,6 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
 \texttt{damage} & 1 & PV retirés au joueur par coup \\
 \texttt{attackRange} & 2 m & distance à partir de laquelle elle frappe \\
 \texttt{attackCooldown} & 1 s & temps minimum entre deux coups \\
-\texttt{slowFactor} & 0,3 & vitesse pendant le ralentissement (30\,\%) \\
 Speed (NavMeshAgent) & 2 & vitesse normale \\
 \bottomrule
 \end{tabular}
@@ -524,15 +532,13 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
 
 \textbf{Fonctionnement.}
 \begin{itemize}
-  \item Dans \texttt{Start()}, la créature mémorise sa vitesse et sa couleur normales, trouve le joueur par son Tag et vérifie qu'elle est bien sur la NavMesh.
+  \item Dans \texttt{Start()}, la créature trouve le joueur par son Tag et vérifie qu'elle est bien sur la NavMesh.
   \item Dans \texttt{Update()}, elle :
   \begin{enumerate}
-    \item ajuste sa vitesse et sa couleur selon \texttt{IsSlowed()} ;
     \item donne la position du joueur à l'agent avec \texttt{SetDestination} ;
     \item frappe si trois conditions sont réunies : la distance au \emph{centre} du joueur est inférieure à \texttt{attackRange}, \texttt{Time.time} a dépassé \texttt{nextAttackTime}, et \texttt{CanSeePlayer()} confirme qu'aucun obstacle ne les sépare.
   \end{enumerate}
   \item \texttt{CanSeePlayer()} lance un rayon de la créature vers le joueur, sur une longueur \texttt{attackRange}. Elle renvoie \texttt{true} seulement si le premier objet touché est le joueur.
-  \item Le ralentissement est stocké sous la forme d'une heure de fin (\texttt{slowEndTime}). \texttt{IsSlowed()} compare simplement cette heure avec \texttt{Time.time}.
 \end{itemize}
 
 \textbf{Limites et problèmes connus.}
@@ -540,7 +546,6 @@ Speed (NavMeshAgent) & 2 & vitesse normale \\
   \item \textbf{Une autre créature peut bloquer l'attaque.} Le rayon de \texttt{CanSeePlayer()} s'arrête sur le premier collider. Si une créature se trouve entre le joueur et une autre créature, celle de derrière ne frappe pas. En pratique, ça limite un peu les dégâts quand le joueur est encerclé, ce qui n'est pas gênant.
   \item \textbf{Le \og centre \fg{} du joueur est codé en dur.} \texttt{player.transform.position + Vector3.up} suppose que le joueur mesure 2 m et que son pivot est à ses pieds. Si on change le modèle du joueur, il faudra adapter cette valeur.
   \item \textbf{Le chemin est recalculé à chaque frame.} \texttt{SetDestination} est appelé environ 60 fois par seconde et par créature, alors que le joueur bouge peu entre deux frames. Avec 10 créatures, ça reste léger, mais ça ne passerait pas à l'échelle avec beaucoup plus de créatures. On pourrait le recalculer seulement quelques fois par seconde.
-  \item \textbf{Un matériau est créé par créature.} \texttt{rend.material} crée une copie du matériau pour chaque créature, ce qui est nécessaire pour qu'une seule devienne cyan. La couleur est aussi réappliquée à chaque frame, même quand elle ne change pas.
   \item \textbf{Une créature hors de la NavMesh reste bloquée.} Elle se désactive, mais elle n'est pas détruite. Elle compte donc toujours dans la limite des 10 créatures du spawner.
   \item \textbf{La créature peut entrer dans le joueur.} La distance d'arrêt de l'agent (\emph{Stopping Distance}) est à 0. L'agent essaie donc d'atteindre exactement la position du joueur. Mettre une distance d'arrêt proche de la portée d'attaque serait plus propre.
 \end{itemize}
@@ -741,7 +746,8 @@ Speed (NavMeshAgent) & 3 & vitesse normale (le joueur va à 5) \\
 
 \textbf{Fonctionnement.}
 \begin{itemize}
-  \item \texttt{Gift} reprend la structure de \texttt{Creature} : la même vérification de la NavMesh au démarrage, le même ralentissement avec une heure de fin et la même couleur cyan. Seule la destination change, puisqu'il va à l'opposé du joueur au lieu d'aller vers lui.
+  \item \texttt{Gift} reprend la structure de \texttt{Creature} (la même vérification de la NavMesh au démarrage), mais il va à l'opposé du joueur au lieu d'aller vers lui.
+  \item Le ralentissement est stocké sous la forme d'une heure de fin (\texttt{slowEndTime}) : \texttt{Slow(durée)} la fixe à \texttt{Time.time + durée}, et \texttt{IsSlowed()} compare simplement cette heure avec \texttt{Time.time}. Pendant le ralentissement, le cadeau passe à 30\,\% de sa vitesse et devient cyan (\texttt{rend.material.color}). Si on ralentit un cadeau déjà ralenti, la durée repart de zéro.
   \item \texttt{GiftSpawner.SpawnGifts()} est appelée par le \texttt{DayNightManager} au lever du jour. Elle instancie \texttt{giftsPerDay} cadeaux sur des points et avec des modèles tirés au hasard.
   \item Le ramassage et le dépôt sont dans \texttt{PlayerController.InteractPressed()}. Le joueur retient la valeur du cadeau porté dans \texttt{carriedValue}, qui vaut 0 quand il a les mains vides.
 \end{itemize}
