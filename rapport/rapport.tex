@@ -281,6 +281,19 @@ Les autres scripts préviennent le \texttt{ChallengeManager} au bon moment : \te
 
 La récompense est un \textbf{cadeau doré}, qui apparaît le lendemain parmi les cadeaux farceurs. Il vaut 2 cadeaux, mais il est plus rapide. J'ai préféré cette récompense à un simple cadeau offert : un cadeau gratuit rapprocherait trop vite de la victoire, et rendrait en même temps la nuit suivante plus difficile. Avec le cadeau doré, la récompense se mérite une deuxième fois, et elle relie la nuit à la journée qui suit. C'est le même prefab que le cadeau normal, avec un matériau doré et deux réglages différents (sa valeur et sa vitesse).
 
+\subsection{Étape H1 : la carte du village}
+L'arène carrée entourée de murs gris, avec ses quelques cubes, n'était ni belle ni intéressante à jouer : les obstacles ne servaient presque à rien. Je l'ai remplacée par un village enneigé de 60 $\times$ 60 m, construit dans l'éditeur avec les modèles des deux packs :
+\begin{itemize}
+  \item \textbf{au centre}, une place avec le sapin, des bonhommes de neige et des lanternes ;
+  \item \textbf{autour de la place}, quatre maisons en pain d'épice, tournées vers le sapin. J'ai créé la maison à partir des murs, du toit, des portes et des fenêtres du pack de Noël, et j'en ai fait un prefab \texttt{House} réutilisé quatre fois. Les maisons sont de vrais obstacles : elles créent des ruelles, servent de couvert la nuit et permettent de coincer les cadeaux farceurs le jour ;
+  \item \textbf{au nord}, le cimetière du pack Halloween : un muret avec une grille au milieu, des tombes, des citrouilles allumées et des arbres morts ;
+  \item \textbf{à l'est et à l'ouest}, une forêt d'arbres morts et de rochers, ouverte par un chemin au milieu de chaque côté ;
+  \item \textbf{au sud}, une barrière et des sapins, à l'entrée du village.
+\end{itemize}
+Les quatre murs de l'arène sont restés, mais ils sont devenus invisibles : leur \emph{Mesh Renderer} est désactivé et leur \emph{Box Collider} est conservé. Ils empêchent toujours de sortir de la carte, et c'est le décor qui marque visuellement la limite. Le sol utilise un matériau de neige.
+
+La carte a aussi un sens pour le jeu. Les monstres apparaissent derrière la grille du cimetière et aux deux chemins de la forêt : on voit d'où ils arrivent, et on peut intercepter les voleurs sur leur trajet vers le sapin. Les cadeaux farceurs apparaissent dans les ruelles, loin du sapin, pour obliger le joueur à traverser le village. Après la construction, j'ai recalculé la NavMesh : elle contourne maintenant les maisons, les tombes et les arbres.
+
 % TODO : étapes B à H à compléter au fur et à mesure.
 
 % =====================================================================

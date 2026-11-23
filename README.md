@@ -77,7 +77,10 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - [x] E. Les voleurs : ils vont au sapin, prennent un cadeau et s'enfuient ; un voleur tué rend le cadeau
 - [x] F. La difficulté progressive selon le nombre de cadeaux
 - [x] G. Le défi de nuit et sa récompense, le cadeau doré
-- [ ] H. L'habillage : modèles 3D, animations, décor de Noël et d'Halloween, particules
+- [x] H1. La carte : un village enneigé autour du sapin, un cimetière au nord (l'entrée des monstres), une forêt d'arbres morts sur les côtés et des maisons en pain d'épice
+- [ ] H2. Le tir visible : arme en sucre d'orge, trait lumineux (LineRenderer), impacts, explosion du canon et animation de recul
+- [ ] H3. Les personnages : Santa en vue TPS (le joueur, animé), les monstres Halloween avec les animations reciblées
+- [ ] H4. L'ambiance : lumières de nuit, fumée, son
 
 ### Équilibrage prévu (n = nombre de cadeaux sous le sapin)
 
