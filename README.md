@@ -38,7 +38,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | Capacité spéciale | Le clic droit : ralentisseur le jour, canon la nuit |
 | Défi (« recette ») | Le défi de nuit tiré au hasard, récompensé par le cadeau doré |
 | Import d'assets 3D | *Christmas Pack FREE* (ithappy) et *Poly Halloween Pack* (polyperfect), depuis l'Unity Asset Store |
-| Bonus | Les animations de Santa (Idle et Run, avec un Animator Controller), reciblées sur les monstres humanoïdes ; l'animation de recul de l'arme ; des particules (étincelles, explosion) ; une Point Light (aura) sur chaque monstre |
+| Bonus | Les animations de Santa (Idle et Run, avec un Animator Controller), reciblées sur les monstres humanoïdes ; l'animation de recul de l'arme ; des particules (étincelles, explosion, fumée, neige qui tombe) ; l'audio (musiques et sons des armes) ; une Point Light (aura) sur chaque monstre |
 
 ## Scripts
 
@@ -81,7 +81,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - [x] H1. La carte : un village enneigé autour du sapin, un cimetière au nord (l'entrée des monstres), une forêt d'arbres morts sur les côtés et des maisons en pain d'épice. La nuit, les tas de neige deviennent des citrouilles allumées et les bonshommes de neige des épouvantails
 - [x] H2. Le tir visible : arme en sucre d'orge, trait lumineux (LineRenderer), impacts, explosion du canon et animation de recul
 - [x] H3. Les personnages : Santa en vue TPS (le joueur, animé), les monstres Halloween avec les animations reciblées
-- [ ] H4. L'ambiance : lumières de nuit, fumée, son
+- [x] H4. L'ambiance : neige qui tombe le jour, nuages de fumée (mort des monstres, aube, changement de décor), musique de jour et de nuit et sons des armes (prêts, fichiers audio à ajouter)
 
 ### Équilibrage prévu (n = nombre de cadeaux sous le sapin)
 

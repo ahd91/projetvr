@@ -24,6 +24,12 @@ public class WeaponEffects : MonoBehaviour
     [Tooltip("Animator qui joue le recul (paramètre Trigger « Fire »)")]
     [SerializeField] private Animator animator;
 
+    [Header("Sons (peuvent rester vides)")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip shotSound;
+    [SerializeField] private AudioClip slowSound;
+    [SerializeField] private AudioClip cannonSound;
+
     private float lineEndTime = 0f; // moment où le trait doit disparaître
 
     void Start()
@@ -44,6 +50,7 @@ public class WeaponEffects : MonoBehaviour
     public void PlayShot(Vector3 end, bool touched)
     {
         DrawLine(end, shotColor, 0.04f);
+        PlaySound(shotSound);
         if (touched)
         {
             SpawnEffect(impactPrefab, end, 1f);
@@ -54,6 +61,7 @@ public class WeaponEffects : MonoBehaviour
     public void PlaySlow(Vector3 end, bool touched)
     {
         DrawLine(end, slowColor, 0.06f);
+        PlaySound(slowSound);
         if (touched)
         {
             SpawnEffect(impactPrefab, end, 1f);
@@ -64,6 +72,7 @@ public class WeaponEffects : MonoBehaviour
     public void PlayCannon(Vector3 end, bool touched)
     {
         DrawLine(end, cannonColor, 0.15f);
+        PlaySound(cannonSound);
         if (touched)
         {
             SpawnEffect(explosionPrefab, end, 3f);
@@ -84,6 +93,15 @@ public class WeaponEffects : MonoBehaviour
         if (animator != null)
         {
             animator.SetTrigger("Fire");
+        }
+    }
+
+    // Joue un son une fois (PlayOneShot permet de superposer plusieurs tirs rapprochés)
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip);
         }
     }
 

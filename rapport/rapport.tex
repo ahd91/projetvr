@@ -343,7 +343,15 @@ Ces personnages n'ont aucune animation, mais ils sont, comme Santa, de type \emp
 
 \paragraph{Lisibilité la nuit.} La nuit, le tueur et la sorcière, habillés de noir, n'étaient que des silhouettes. Une première idée, rendre leur matériau émissif, ne suffisait pas : un vêtement noir qui émet sa propre couleur reste noir. J'ai donc ajouté à chaque monstre une \emph{Point Light}, une petite lumière qui l'éclaire de près : rouge-orangé pour les chasseurs, bleu-vert pour les voleurs. Les monstres restent visibles, et le joueur reconnaît de loin le type de monstre qui arrive. Le matériau des monstres est une copie de celui du pack, car l'original est partagé avec tout le décor Halloween.
 
-% TODO : étapes B à H à compléter au fur et à mesure.
+\subsection{Étape H4 : l'ambiance}
+Pour finir, j'ai ajouté plusieurs détails qui renforcent l'alternance entre Noël et Halloween :
+\begin{itemize}
+  \item \textbf{de la neige qui tombe le jour} : un \emph{Particle System} en forme de grande boîte au-dessus du village. Elle fait partie des décorations de jour du \texttt{DayNightManager}, donc elle s'arrête toute seule la nuit, sans code supplémentaire ;
+  \item \textbf{des nuages de fumée} : quand un monstre meurt, quand les monstres restants disparaissent au lever du jour, et quand les tas de neige se transforment en citrouilles. C'est le même principe que les impacts du tir : un prefab de particules instancié à la bonne position, puis détruit au bout de 3 secondes ;
+  \item \textbf{la gestion du son} : une musique de jour et une musique de nuit (deux \emph{AudioSource} en boucle, que le \texttt{DayNightManager} lance et arrête avec \texttt{Play()} et \texttt{Stop()}), et un son pour chaque arme, joué avec \texttt{audioSource.PlayOneShot(son)}. \texttt{PlayOneShot} permet de superposer plusieurs sons quand les tirs sont rapprochés. Chaque appel vérifie d'abord que le son existe, ce qui permet au jeu de fonctionner même si un son n'a pas été fourni.
+\end{itemize}
+
+% TODO : compléter si de nouvelles étapes sont ajoutées.
 
 % =====================================================================
 \section{Notions du cours utilisées}
@@ -473,6 +481,7 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
 \midrule
 \texttt{maxHp} & 3 (créature), 10 (joueur) & points de vie au départ \\
 \texttt{destroyOnDeath} & oui (créature), non (joueur) & détruire l'objet à 0 PV \\
+\texttt{deathEffect} & SmokePuff (monstres) & effet créé à la mort \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -481,6 +490,7 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
 \begin{itemize}
   \item \texttt{TakeDamage(int amount)} retire des PV. Si l'objet est déjà à 0, le coup est ignoré, car \texttt{Destroy} n'agit qu'à la fin de la frame et un deuxième coup pourrait arriver avant.
   \item À 0 PV, si l'objet a aussi un script \texttt{Thief}, \texttt{Health} prévient le \texttt{ChallengeManager} (défi \og tue X voleurs \fg{}).
+  \item Quand l'objet est détruit, \texttt{Health} crée d'abord l'effet \texttt{deathEffect} (un nuage de fumée) à sa position, puis programme la destruction de cet effet au bout de 3 secondes.
   \item Le joueur n'est pas détruit (\texttt{destroyOnDeath} décoché), sinon sa caméra disparaîtrait. C'est le HUD qui détecte sa mort avec \texttt{GetHp()}.
 \end{itemize}
 
@@ -650,6 +660,8 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
 \texttt{dayDecorations}, \texttt{nightDecorations} & tas de neige et bonshommes ; citrouilles et épouvantails & décor qui change avec la phase \\
 \texttt{fogColor}, \texttt{nightAmbient} & bleu nuit, 0,4 & brouillard et lumière ambiante la nuit \\
 \texttt{spawner} & Spawner & actif uniquement la nuit \\
+\texttt{smokeEffect} & SmokePuff & fumée à l'aube et au changement de décor \\
+\texttt{dayMusic}, \texttt{nightMusic} & DayMusic, NightMusic & musiques en boucle \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -659,6 +671,8 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
   \item \texttt{Update()} compare \texttt{Time.time} à \texttt{phaseEndTime}. Quand la phase est terminée, il appelle \texttt{StartDay()} ou \texttt{StartNight()}.
   \item Ces deux méthodes règlent la lumière, le ciel, le brouillard, la lumière ambiante et le volume, puis activent ou désactivent le spawner. \texttt{StartDay()} détruit aussi les créatures restantes, qu'elle retrouve par leur Tag.
   \item \texttt{ShowDecorations(bool night)} parcourt les deux tableaux de décorations avec \texttt{foreach} : la nuit, elle active les citrouilles et les épouvantails et cache la neige et les bonshommes, et le jour elle fait l'inverse.
+  \item \texttt{SpawnSmoke()} crée un nuage de fumée à une position : sur chaque créature détruite au lever du jour, et sur chaque décoration qui change de phase. Le booléen \texttt{firstPhase} évite ce nuage au tout premier lever du jour, au lancement de la partie.
+  \item \texttt{PlayMusic()} arrête la musique de la phase précédente et lance celle de la nouvelle phase.
   \item \texttt{IsNight()} et \texttt{GetTimeLeft()} permettent aux autres scripts, comme le HUD, de connaître la phase et le temps restant.
 \end{itemize}
 
@@ -666,8 +680,7 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
 \begin{itemize}
   \item \textbf{La transition est brutale.} La lumière et le ciel changent d'un coup. Un fondu progressif, par exemple avec \texttt{Color.Lerp} sur quelques secondes, serait plus joli.
   \item \textbf{Le soleil ne bouge pas.} Seules sa couleur et son intensité changent. Faire tourner la lumière au cours de la journée donnerait des ombres qui évoluent.
-  \item \textbf{Les créatures disparaissent d'un coup à l'aube}, sans effet visuel. Un nuage de fumée (particules du pack de Noël) est prévu à l'étape H.
-  \item \textbf{Les décorations changent d'un coup}, sans transition. Un petit nuage de fumée au moment du changement rendrait la transformation plus magique.
+  \item \textbf{La musique change d'un coup.} Il n'y a pas de fondu entre la musique de jour et celle de nuit. On pourrait baisser progressivement le volume de l'une pendant que l'autre monte.
   \item \textbf{Les deux tableaux doivent correspondre.} Rien n'oblige à mettre une citrouille pour chaque tas de neige : si on en oublie une, un emplacement reste vide la nuit.
   \item \textbf{Toutes les références doivent être remplies.} Si une case de l'Inspector est vide (le soleil, un ciel, le volume ou le spawner), le changement de phase provoque une erreur.
   \item \textbf{Les réglages de brouillard sont partagés.} Le mode et la densité viennent de la fenêtre \emph{Lighting}, mais la couleur vient du script. Une partie du réglage est donc dans l'éditeur et l'autre dans le code.
@@ -797,6 +810,7 @@ Max Hp (Health) & 2 & plus fragile qu'un chasseur \\
 \texttt{shotColor}, \texttt{slowColor}, \texttt{cannonColor} & blanc, cyan, orange & couleur selon l'arme \\
 \texttt{impactPrefab}, \texttt{explosionPrefab} & ImpactSpark, CannonExplosion & particules \\
 \texttt{animator} & Animator de l'arme & joue le recul \\
+\texttt{audioSource}, \texttt{shotSound}, \texttt{slowSound}, \texttt{cannonSound} & -- & sons des trois tirs \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -805,6 +819,7 @@ Max Hp (Health) & 2 & plus fragile qu'un chasseur \\
 \begin{itemize}
   \item Le \texttt{PlayerController} appelle \texttt{PlayShot()}, \texttt{PlaySlow()} ou \texttt{PlayCannon()} avec le point d'arrivée du tir et un booléen qui indique si quelque chose a été touché.
   \item \texttt{DrawLine()} place les deux extrémités du LineRenderer avec \texttt{SetPosition}, règle sa couleur et son épaisseur, l'active, retient l'heure à laquelle il doit disparaître et déclenche le recul. \texttt{Update()} le désactive quand ce moment est passé.
+  \item \texttt{PlaySound()} joue le son de l'arme avec \texttt{PlayOneShot}, seulement si une source audio et un son ont été fournis.
   \item \texttt{SpawnEffect()} instancie un prefab de particules au point touché et programme sa destruction.
 \end{itemize}
 

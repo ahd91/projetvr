@@ -284,6 +284,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHp: 2
   destroyOnDeath: 1
+  deathEffect: {fileID: 3047173873787681679, guid: dd92e329fae020c4d88f8d758b67babd, type: 3}
 --- !u!114 &6352719177672179073
 MonoBehaviour:
   m_ObjectHideFlags: 0

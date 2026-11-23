@@ -6,6 +6,8 @@ public class Health : MonoBehaviour
     [SerializeField] private int maxHp = 3;
     [Tooltip("Détruire l'objet à 0 PV ? (à décocher pour le joueur : c'est le HUD qui affiche le game over)")]
     [SerializeField] private bool destroyOnDeath = true;
+    [Tooltip("Effet (fumée) créé à la mort de l'objet. Peut rester vide.")]
+    [SerializeField] private GameObject deathEffect;
     private int hp;
 
     void Start()
@@ -34,6 +36,11 @@ public class Health : MonoBehaviour
 
             if (destroyOnDeath)
             {
+                if (deathEffect != null)
+                {
+                    GameObject effect = Instantiate(deathEffect, transform.position, Quaternion.identity);
+                    Destroy(effect, 3f);
+                }
                 Destroy(gameObject);
             }
         }
