@@ -53,6 +53,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | `ChristmasTree.cs` | La zone de dépôt au pied du sapin (un trigger). Il compte les cadeaux, affiche autant de modèles de cadeaux sous le sapin, et permet aux voleurs d'en retirer un. |
 | `Gift.cs` | Le cadeau farceur : il s'enfuit à l'opposé du joueur sur la NavMesh. Il peut être ralenti, et il ne peut être attrapé que dans ce cas. |
 | `GiftSpawner.cs` | Fait apparaître 4 cadeaux farceurs au début de chaque journée, sur des points tirés au hasard. Ils sont plus rapides quand il y a beaucoup de cadeaux sous le sapin. |
+| `WeaponEffects.cs` | Les effets du tir : un trait lumineux (LineRenderer) du bout du sucre d'orge jusqu'à l'impact, avec une couleur selon l'arme, des étincelles, l'explosion du canon et l'animation de recul (`animator.SetTrigger("Fire")`). |
 | `HUD.cs` | Affiche la vie, le nombre de défis réussis, le défi, la phase avec le temps restant, et le nombre de cadeaux. À 10 cadeaux, il affiche l'écran de victoire. À la mort du joueur, il affiche le Game Over, met le jeu en pause et libère la souris. Le bouton Rejouer recharge la scène. |
 | `ChallengeManager.cs` | Le défi de nuit, tiré au hasard parmi trois : « aucun cadeau perdu », « tue X voleurs » ou « tue X créatures au canon ». S'il est réussi, le `DayNightManager` fait apparaître un cadeau doré le lendemain. Il compte aussi les défis réussis. |
 
@@ -78,7 +79,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - [x] F. La difficulté progressive selon le nombre de cadeaux
 - [x] G. Le défi de nuit et sa récompense, le cadeau doré
 - [x] H1. La carte : un village enneigé autour du sapin, un cimetière au nord (l'entrée des monstres), une forêt d'arbres morts sur les côtés et des maisons en pain d'épice
-- [ ] H2. Le tir visible : arme en sucre d'orge, trait lumineux (LineRenderer), impacts, explosion du canon et animation de recul
+- [x] H2. Le tir visible : arme en sucre d'orge, trait lumineux (LineRenderer), impacts, explosion du canon et animation de recul
 - [ ] H3. Les personnages : Santa en vue TPS (le joueur, animé), les monstres Halloween avec les animations reciblées
 - [ ] H4. L'ambiance : lumières de nuit, fumée, son
 

@@ -35,6 +35,10 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Pour le défi « tue X créatures au canon » (glisser depuis la Hierarchy)")]
     [SerializeField] private ChallengeManager challengeManager;
 
+    [Header("Effets de l'arme")]
+    [Tooltip("Trait lumineux, impacts, explosion, recul (sur l'objet Weapon)")]
+    [SerializeField] private WeaponEffects weaponEffects;
+
     [Header("Cadeaux")]
     [Tooltip("Le sapin de la scène (glisser depuis la Hierarchy)")]
     [SerializeField] private ChristmasTree tree;
@@ -119,7 +123,19 @@ public class PlayerController : MonoBehaviour
     private bool ShootRay(out RaycastHit hit)
     {
         Ray ray = cam.ScreenPointToRay(new Vector3(Screen.width / 2.0f, Screen.height / 2.0f, 0));
+        // Comme dans le cours : rayon visible dans la vue Scene pour déboguer (pas dans le jeu)
+        Debug.DrawRay(ray.origin, ray.direction * 100f, Color.red, 1f);
         return Physics.Raycast(ray, out hit);
+    }
+
+    // Point où s'arrête le trait du tir : l'objet touché, ou loin devant si on n'a rien touché
+    private Vector3 GetShotEnd(bool touched, RaycastHit hit)
+    {
+        if (touched)
+        {
+            return hit.point;
+        }
+        return cam.transform.position + cam.transform.forward * 100f;
     }
 
     // Clic gauche : enlève des PV à l'objet touché (s'il a un script Health)
@@ -132,7 +148,8 @@ public class PlayerController : MonoBehaviour
         }
 
         RaycastHit hit;
-        if (ShootRay(out hit))
+        bool touched = ShootRay(out hit);
+        if (touched)
         {
             Debug.Log("Touché : " + hit.collider.name);
             Health health = hit.collider.GetComponent<Health>();
@@ -140,6 +157,11 @@ public class PlayerController : MonoBehaviour
             {
                 health.TakeDamage(damage);
             }
+        }
+
+        if (weaponEffects != null)
+        {
+            weaponEffects.PlayShot(GetShotEnd(touched, hit), touched);
         }
     }
 
@@ -166,7 +188,14 @@ public class PlayerController : MonoBehaviour
     private void SlowTarget()
     {
         RaycastHit hit;
-        if (ShootRay(out hit))
+        bool touched = ShootRay(out hit);
+
+        if (weaponEffects != null)
+        {
+            weaponEffects.PlaySlow(GetShotEnd(touched, hit), touched);
+        }
+
+        if (touched)
         {
             Creature creature = hit.collider.GetComponent<Creature>();
             if (creature != null)
@@ -195,11 +224,18 @@ public class PlayerController : MonoBehaviour
 
         // 1) Le rayon donne le point d'impact (si on vise le ciel, il ne se passe rien)
         RaycastHit hit;
-        if (ShootRay(out hit))
+        bool touched = ShootRay(out hit);
+
+        if (weaponEffects != null)
+        {
+            weaponEffects.PlayCannon(GetShotEnd(touched, hit), touched);
+        }
+
+        if (touched)
         {
             // 2) Explosion : on récupère tous les colliders dans une sphère autour de l'impact
-            Collider[] touched = Physics.OverlapSphere(hit.point, cannonRadius);
-            foreach (Collider col in touched)
+            Collider[] inExplosion = Physics.OverlapSphere(hit.point, cannonRadius);
+            foreach (Collider col in inExplosion)
             {
                 // Le joueur ne se blesse pas avec sa propre explosion
                 if (col.CompareTag("Player"))

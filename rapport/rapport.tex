@@ -226,8 +226,8 @@ Le clic droit change de rôle selon la phase. Le \texttt{PlayerController} deman
 \end{itemize}
 Le canon utilise d'abord le raycast pour trouver le point d'impact (\texttt{hit.point}). Il récupère ensuite tous les colliders dans une sphère autour de ce point avec \texttt{Physics.OverlapSphere}, et inflige des dégâts à tous ceux qui ont un \texttt{Health}. On obtient ainsi un effet de zone, qui permet de tuer un groupe de monstres d'un coup :
 \begin{lstlisting}
-Collider[] touched = Physics.OverlapSphere(hit.point, cannonRadius);
-foreach (Collider col in touched)
+Collider[] inExplosion = Physics.OverlapSphere(hit.point, cannonRadius);
+foreach (Collider col in inExplosion)
 {
     if (col.CompareTag("Player"))
     {
@@ -293,6 +293,18 @@ L'arène carrée entourée de murs gris, avec ses quelques cubes, n'était ni be
 Les quatre murs de l'arène sont restés, mais ils sont devenus invisibles : leur \emph{Mesh Renderer} est désactivé et leur \emph{Box Collider} est conservé. Ils empêchent toujours de sortir de la carte, et c'est le décor qui marque visuellement la limite. Le sol utilise un matériau de neige.
 
 La carte a aussi un sens pour le jeu. Les monstres apparaissent derrière la grille du cimetière et aux deux chemins de la forêt : on voit d'où ils arrivent, et on peut intercepter les voleurs sur leur trajet vers le sapin. Les cadeaux farceurs apparaissent dans les ruelles, loin du sapin, pour obliger le joueur à traverser le village. Après la construction, j'ai recalculé la NavMesh : elle contourne maintenant les maisons, les tombes et les arbres.
+
+\subsection{Étape H2 : un tir visible}
+Jusqu'ici, le tir était invisible : un raycast ne se voit pas. Le cours (VI.3) montre comment rendre le rayon visible avec \texttt{Debug.DrawRay}, mais cette ligne n'apparaît que dans la vue \emph{Scene} de l'éditeur, jamais dans le jeu : c'est un outil de débogage. Je l'ai gardé dans \texttt{ShootRay}, en rouge, pour vérifier la trajectoire des tirs pendant les tests.
+
+Pour le joueur, j'ai ajouté :
+\begin{itemize}
+  \item \textbf{une arme visible}, un sucre d'orge du pack de Noël tenu en bas à droite de l'écran. Ses colliders ont été retirés, sinon le raycast du joueur le toucherait en premier ;
+  \item \textbf{un trait lumineux} avec un \emph{LineRenderer}, un composant qui dessine une ligne entre deux points. La ligne part du bout de l'arme (un objet vide \texttt{Muzzle}) et va jusqu'au point touché (\texttt{hit.point}), ou à 100 m devant si on ne touche rien. Elle reste affichée 0,06 s. Sa couleur indique l'arme : blanc pour le tir, cyan pour le ralentisseur, orange et plus épais pour le canon ;
+  \item \textbf{des particules} : des étincelles au point d'impact, et une explosion avec de la fumée pour le canon. Ce sont des prefabs de \emph{Particle System}, créés avec \texttt{Instantiate} au point touché, puis détruits après quelques secondes avec \texttt{Destroy(effet, durée)} ;
+  \item \textbf{une animation de recul} : un clip d'animation fait reculer et relever le sucre d'orge en 0,15 s. Un \emph{Animator Controller} contient deux états, \texttt{Idle} et \texttt{Recoil}, et un paramètre de type \emph{Trigger} nommé \texttt{Fire}. À chaque tir, le script appelle \texttt{animator.SetTrigger("Fire")}, ce qui fait passer l'Animator dans l'état \texttt{Recoil}, puis il revient tout seul à \texttt{Idle}.
+\end{itemize}
+Ces effets sont regroupés dans le script \texttt{WeaponEffects}, pour ne pas alourdir le \texttt{PlayerController}, qui se contente de l'appeler à chaque tir.
 
 % TODO : étapes B à H à compléter au fur et à mesure.
 
@@ -387,6 +399,7 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
   \item \texttt{ShootRay(out RaycastHit hit)} lance un rayon depuis le centre de l'écran et renvoie \texttt{true} si un objet est touché. Le tir et la capacité utilisent tous les deux cette fonction.
   \item Le tir cherche un composant \texttt{Health} sur l'objet touché.
   \item Le clic droit appelle \texttt{SpecialPressed()}. Le jour, elle appelle \texttt{SlowTarget()}, qui ralentit la \texttt{Creature} ou le \texttt{Gift} touché. La nuit, elle appelle \texttt{FireCannon()} : si le canon est rechargé, elle fait exploser une sphère de rayon \texttt{cannonRadius} au point d'impact avec \texttt{Physics.OverlapSphere}, et inflige \texttt{cannonDamage} à chaque \texttt{Health} touché, sauf au joueur.
+  \item \texttt{ShootRay} affiche aussi le rayon en rouge dans la vue Scene avec \texttt{Debug.DrawRay}, pour le débogage. \texttt{GetShotEnd} donne le point d'arrivée du trait (l'objet touché, ou 100 m devant), et chaque tir appelle ensuite le script \texttt{WeaponEffects}.
   \item La touche E (action \texttt{Interact}) appelle \texttt{InteractPressed}, qui interagit avec le sapin quand le joueur est dans sa zone. La référence au sapin (\texttt{tree}) est glissée dans l'Inspector.
   \item Si le jeu est en pause (\texttt{Time.timeScale == 0}, pendant le Game Over), \texttt{FirePressed} et \texttt{SlowPressed} s'arrêtent tout de suite.
 \end{itemize}
@@ -397,7 +410,6 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
   \item \textbf{Le collider doit être sur l'objet qui porte le script.} On utilise \texttt{hit.collider.GetComponent<Health>()}. Si on remplace la capsule par un modèle 3D dont le collider est sur un objet enfant, le tir ne trouvera plus le \texttt{Health}. Il faudra faire attention à l'étape 8.
   \item \textbf{L'explosion traverse les murs.} \texttt{OverlapSphere} prend tout ce qui est dans la sphère, même une créature cachée derrière un obstacle. Un raycast entre le point d'impact et chaque créature corrigerait ce problème, comme pour l'attaque des créatures.
   \item \textbf{Un tir dans le ciel consomme la recharge.} Si le rayon ne touche rien, il n'y a pas d'explosion, mais il faut quand même attendre 5 secondes.
-  \item \textbf{Le canon n'a pas encore d'effet visuel} : pas d'explosion ni de fumée. Des particules sont prévues à l'étape H.
   \item \textbf{Le nom de l'action est resté \texttt{slow}.} L'action du clic droit sert maintenant aux deux armes, mais elle n'a pas été renommée, pour ne pas perdre la référence dans l'Inspector.
   \item \textbf{Le saut ne fonctionne pas.} L'action \texttt{jump} est activée mais jamais lue dans \texttt{Update()}. C'est le cas depuis le code fourni, et le jeu n'en a pas besoin pour l'instant.
   \item \textbf{La sensibilité de la souris dépend du nombre d'images par seconde.} Le déplacement de la souris (\texttt{delta}) correspond déjà au mouvement depuis la dernière frame. Le multiplier en plus par \texttt{Time.deltaTime} fait que la caméra tourne moins vite quand le jeu tourne plus vite. C'est un détail du code fourni que je n'ai pas modifié.
@@ -718,6 +730,42 @@ Max Hp (Health) & 2 & plus fragile qu'un chasseur \\
   \item \textbf{Le sapin est trouvé par son nom}, comme le \texttt{ChallengeManager}. Si l'objet \texttt{GiftZone} est renommé, les voleurs ne bougent plus.
   \item \textbf{\texttt{OnDestroy()} est aussi appelée au rechargement de la scène}, quand on clique sur \og Rejouer \fg{}. Le cadeau est alors ajouté à un sapin qui va lui-même être détruit, donc ça n'a aucun effet visible, mais c'est un comportement à connaître.
   \item \textbf{Un voleur sans cadeau à voler repart sans rien faire.} Il pourrait par exemple s'en prendre au cadeau que porte le joueur.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\subsection{WeaponEffects}
+
+\textbf{Rôle.} Afficher les effets visuels des tirs : le trait, les impacts, l'explosion et le recul de l'arme.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llp{7cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
+\midrule
+\texttt{line} & LineRenderer & le trait du tir \\
+\texttt{muzzle} & Muzzle & point de départ du trait (bout de l'arme) \\
+\texttt{lineDuration} & 0,06 s & durée d'affichage du trait \\
+\texttt{shotColor}, \texttt{slowColor}, \texttt{cannonColor} & blanc, cyan, orange & couleur selon l'arme \\
+\texttt{impactPrefab}, \texttt{explosionPrefab} & ImpactSpark, CannonExplosion & particules \\
+\texttt{animator} & Animator de l'arme & joue le recul \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Fonctionnement.}
+\begin{itemize}
+  \item Le \texttt{PlayerController} appelle \texttt{PlayShot()}, \texttt{PlaySlow()} ou \texttt{PlayCannon()} avec le point d'arrivée du tir et un booléen qui indique si quelque chose a été touché.
+  \item \texttt{DrawLine()} place les deux extrémités du LineRenderer avec \texttt{SetPosition}, règle sa couleur et son épaisseur, l'active, retient l'heure à laquelle il doit disparaître et déclenche le recul. \texttt{Update()} le désactive quand ce moment est passé.
+  \item \texttt{SpawnEffect()} instancie un prefab de particules au point touché et programme sa destruction.
+\end{itemize}
+
+\textbf{Limites et problèmes connus.}
+\begin{itemize}
+  \item \textbf{Un seul trait à la fois.} Un nouveau tir remplace le trait précédent. Avec la cadence du jeu, ça ne se voit pas.
+  \item \textbf{Le trait ne suit pas l'arme.} Ses extrémités sont fixées au moment du tir. Si le joueur tourne pendant les 0,06 s, le trait reste en place, mais c'est trop court pour être visible.
+  \item \textbf{Un effet est créé puis détruit à chaque impact.} Pour un jeu avec beaucoup de tirs, on réutiliserait plutôt des effets déjà créés (\emph{pooling}). Ici, la cadence est faible et ça ne pose pas de problème.
+  \item \textbf{Le départ du trait et la visée ne sont pas au même endroit.} Le rayon part du centre de la caméra, alors que le trait part du bout de l'arme. Le trait est donc légèrement en biais, ce qui est l'effet habituel dans les jeux de tir.
 \end{itemize}
 
 % ---------------------------------------------------------------------
