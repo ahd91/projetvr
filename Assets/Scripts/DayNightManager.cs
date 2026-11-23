@@ -33,13 +33,9 @@ public class DayNightManager : MonoBehaviour
     [Tooltip("Décorations visibles seulement la nuit (les citrouilles, à la même place)")]
     [SerializeField] private GameObject[] nightDecorations;
 
-    [Header("Effets et musique")]
+    [Header("Effets")]
     [Tooltip("Petit nuage de fumée : monstres qui disparaissent à l'aube, décor qui change")]
     [SerializeField] private GameObject smokeEffect;
-    [Tooltip("Musique du jour (AudioSource en boucle). Peut rester vide.")]
-    [SerializeField] private AudioSource dayMusic;
-    [Tooltip("Musique de la nuit (AudioSource en boucle). Peut rester vide.")]
-    [SerializeField] private AudioSource nightMusic;
 
     [Header("Cadeaux")]
     [Tooltip("Fait apparaître les cadeaux farceurs au début de chaque jour")]
@@ -112,7 +108,6 @@ public class DayNightManager : MonoBehaviour
             giftSpawner.SpawnGoldenGift();
         }
 
-        PlayMusic(dayMusic, nightMusic);
         firstPhase = false;
 
         Debug.Log("Le jour se lève : c'est Noël !");
@@ -144,7 +139,6 @@ public class DayNightManager : MonoBehaviour
             Destroy(gift);
         }
 
-        PlayMusic(nightMusic, dayMusic);
 
         Debug.Log("La nuit tombe : c'est Halloween !");
     }
@@ -173,19 +167,6 @@ public class DayNightManager : MonoBehaviour
         {
             GameObject smoke = Instantiate(smokeEffect, position, Quaternion.identity);
             Destroy(smoke, 3f);
-        }
-    }
-
-    // Lance une musique et arrête l'autre
-    private void PlayMusic(AudioSource toPlay, AudioSource toStop)
-    {
-        if (toStop != null)
-        {
-            toStop.Stop();
-        }
-        if (toPlay != null)
-        {
-            toPlay.Play();
         }
     }
 

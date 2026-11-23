@@ -67,11 +67,19 @@ public class Spawner : MonoBehaviour
             return;
         }
 
-        // On tire un point au hasard. S'il est trop près du joueur, on ne fait rien :
-        // on retentera au prochain tour avec un autre point.
-        Transform point = spawnPoints[Random.Range(0, spawnPoints.Length)];
-        float distance = Vector3.Distance(point.position, player.transform.position);
-        if (distance < minDistance)
+        // On tire des points au hasard jusqu'à en trouver un assez loin du joueur (anti spawn kill).
+        // On fait au plus autant d'essais qu'il y a de points ; si aucun ne convient, on réessaiera au prochain tour.
+        Transform point = null;
+        for (int i = 0; i < spawnPoints.Length; i++)
+        {
+            Transform candidate = spawnPoints[Random.Range(0, spawnPoints.Length)];
+            if (Vector3.Distance(candidate.position, player.transform.position) >= minDistance)
+            {
+                point = candidate;
+                break; // trouvé : on arrête de chercher
+            }
+        }
+        if (point == null)
         {
             return;
         }

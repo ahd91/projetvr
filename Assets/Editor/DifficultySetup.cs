@@ -49,11 +49,102 @@ public static class DifficultySetup
             so.ApplyModifiedProperties();
         }
 
+        // Plus de son dans le jeu : on retire les sources audio
+        foreach (string n in new[] { "DayMusic", "NightMusic" })
+        {
+            GameObject music = GameObject.Find(n);
+            if (music != null) Undo.DestroyObjectImmediate(music);
+        }
+        WeaponEffects weapon = Object.FindAnyObjectByType<WeaponEffects>();
+        if (weapon != null && weapon.GetComponent<AudioSource>() != null)
+        {
+            Undo.DestroyObjectImmediate(weapon.GetComponent<AudioSource>());
+        }
+
         Undo.CollapseUndoOperations(group);
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         EditorUtility.DisplayDialog("Difficulté installée",
             "Krampus créé (Assets/Prefabs/Krampus) et branché sur le Spawner.\n" +
             pumpkins + " citrouilles servent maintenant de munitions.\nFais Ctrl+S, puis teste.", "OK");
+    }
+
+    // ------------------------------------------------------------------ Monstres plus durs
+
+    [MenuItem("Outils/Monstres plus durs")]
+    static void HarderMonsters()
+    {
+        // 1) Vitesses (le joueur court à 5)
+        SetAgent("Assets/Prefabs/Creature.prefab", 3.5f);
+        SetAgent("Assets/Prefabs/Creature_Witch.prefab", 3.8f);
+        SetAgent("Assets/Prefabs/Thief.prefab", 4.5f);
+        SetAgent("Assets/Prefabs/Thief_Ghost.prefab", 4.8f);
+        SetAgent("Assets/Prefabs/Krampus.prefab", 2.2f);
+
+        Undo.SetCurrentGroupName("Monstres plus durs");
+        int group = Undo.GetCurrentGroup();
+
+        // 2) 12 points d'apparition tout autour du village (posés sur la NavMesh)
+        GameObject parent = GameObject.Find("Spawnpoints");
+        if (parent == null) { EditorUtility.DisplayDialog("Monstres plus durs", "Objet « Spawnpoints » introuvable.", "OK"); return; }
+        Vector3[] spots =
+        {
+            new Vector3(-12, 0, 25), new Vector3(0, 0, 26), new Vector3(12, 0, 25),     // cimetière
+            new Vector3(-26, 0, 12), new Vector3(-26, 0, 0), new Vector3(-26, 0, -14),  // forêt ouest
+            new Vector3(26, 0, 12), new Vector3(26, 0, 0), new Vector3(26, 0, -14),     // forêt est
+            new Vector3(-16, 0, -26), new Vector3(0, 0, -26), new Vector3(16, 0, -26)   // sud
+        };
+        for (int i = parent.transform.childCount - 1; i >= 0; i--)
+        {
+            Undo.DestroyObjectImmediate(parent.transform.GetChild(i).gameObject);
+        }
+        Transform[] points = new Transform[spots.Length];
+        for (int i = 0; i < spots.Length; i++)
+        {
+            Vector3 pos = spots[i];
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(pos, out hit, 5f, NavMesh.AllAreas)) pos = hit.position;
+            GameObject sp = new GameObject("SP" + (i + 1));
+            Undo.RegisterCreatedObjectUndo(sp, "Point");
+            sp.transform.SetParent(parent.transform, false);
+            sp.transform.position = pos + Vector3.up; // centre de la créature à 1 m du sol
+            points[i] = sp.transform;
+        }
+
+        // 3) Plus de monstres, plus souvent
+        Spawner spawner = Object.FindAnyObjectByType<Spawner>();
+        if (spawner != null)
+        {
+            SerializedObject so = new SerializedObject(spawner);
+            SerializedProperty arr = so.FindProperty("spawnPoints");
+            arr.arraySize = points.Length;
+            for (int i = 0; i < points.Length; i++) arr.GetArrayElementAtIndex(i).objectReferenceValue = points[i];
+            so.FindProperty("minDistance").floatValue = 12f;
+            so.FindProperty("baseMaxCreatures").intValue = 6;
+            so.FindProperty("baseInterval").floatValue = 2.5f;
+            so.FindProperty("intervalPerGift").floatValue = 0.15f;
+            so.FindProperty("minInterval").floatValue = 0.8f;
+            so.ApplyModifiedProperties();
+        }
+
+        Undo.CollapseUndoOperations(group);
+        EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+        EditorUtility.DisplayDialog("Monstres plus durs",
+            "Vitesses augmentées, 12 points d'apparition autour du village, et plus de monstres.\nFais Ctrl+S, puis teste.", "OK");
+    }
+
+    static void SetAgent(string path, float speed)
+    {
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null) return;
+        GameObject root = PrefabUtility.LoadPrefabContents(path);
+        NavMeshAgent agent = root.GetComponent<NavMeshAgent>();
+        if (agent != null)
+        {
+            agent.speed = speed;
+            agent.acceleration = 14f;   // démarre et tourne plus vite : plus difficile à semer
+            agent.angularSpeed = 400f;
+        }
+        PrefabUtility.SaveAsPrefabAsset(root, path);
+        PrefabUtility.UnloadPrefabContents(root);
     }
 
     // Le Krampus : un chasseur deux fois plus grand, plus lent, plus résistant et qui frappe plus fort
