@@ -35,8 +35,8 @@ public class HUD : MonoBehaviour
     void Update()
     {
         healthText.text = "Vie : " + playerHealth.GetHp();
-        scoreText.text = "Score : " + challengeManager.GetScore();
-        challengeText.text = "Défi : " + challengeManager.GetChallengeText();
+        scoreText.text = "Défis réussis : " + challengeManager.GetScore();
+        challengeText.text = challengeManager.GetChallengeText();
 
         // Phase en cours + secondes restantes (arrondies au-dessus pour ne jamais afficher 0 trop tôt)
         int secondsLeft = Mathf.CeilToInt(dayNightManager.GetTimeLeft());

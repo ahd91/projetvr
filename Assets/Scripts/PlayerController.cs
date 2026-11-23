@@ -32,6 +32,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float cannonRadius = 4f;
     [Tooltip("Pour savoir s'il fait jour ou nuit (glisser depuis la Hierarchy)")]
     [SerializeField] private DayNightManager dayNightManager;
+    [Tooltip("Pour le défi « tue X créatures au canon » (glisser depuis la Hierarchy)")]
+    [SerializeField] private ChallengeManager challengeManager;
 
     [Header("Cadeaux")]
     [Tooltip("Le sapin de la scène (glisser depuis la Hierarchy)")]
@@ -205,10 +207,15 @@ public class PlayerController : MonoBehaviour
                     continue;
                 }
 
+                // On ne compte que les créatures encore vivantes AVANT l'explosion et mortes APRÈS
                 Health health = col.GetComponent<Health>();
-                if (health != null)
+                if (health != null && health.GetHp() > 0)
                 {
                     health.TakeDamage(cannonDamage);
+                    if (health.GetHp() <= 0)
+                    {
+                        challengeManager.CannonKill();
+                    }
                 }
             }
         }

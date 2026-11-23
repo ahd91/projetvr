@@ -53,8 +53,8 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 | `ChristmasTree.cs` | La zone de dépôt au pied du sapin (un trigger). Il compte les cadeaux, affiche autant de modèles de cadeaux sous le sapin, et permet aux voleurs d'en retirer un. |
 | `Gift.cs` | Le cadeau farceur : il s'enfuit à l'opposé du joueur sur la NavMesh. Il peut être ralenti, et il ne peut être attrapé que dans ce cas. |
 | `GiftSpawner.cs` | Fait apparaître 4 cadeaux farceurs au début de chaque journée, sur des points tirés au hasard. Ils sont plus rapides quand il y a beaucoup de cadeaux sous le sapin. |
-| `HUD.cs` | Affiche la vie, le score, le défi, la phase avec le temps restant, et le nombre de cadeaux. À 10 cadeaux, il affiche l'écran de victoire. À la mort du joueur, il affiche le Game Over, met le jeu en pause et libère la souris. Le bouton Rejouer recharge la scène. |
-| `ChallengeManager.cs` | Ancien système de défis (« tue X créatures »), qui sera remplacé par le défi de nuit à l'étape G. |
+| `HUD.cs` | Affiche la vie, le nombre de défis réussis, le défi, la phase avec le temps restant, et le nombre de cadeaux. À 10 cadeaux, il affiche l'écran de victoire. À la mort du joueur, il affiche le Game Over, met le jeu en pause et libère la souris. Le bouton Rejouer recharge la scène. |
+| `ChallengeManager.cs` | Le défi de nuit, tiré au hasard parmi trois : « aucun cadeau perdu », « tue X voleurs » ou « tue X créatures au canon ». S'il est réussi, le `DayNightManager` fait apparaître un cadeau doré le lendemain. Il compte aussi les défis réussis. |
 
 ## Avancement
 
@@ -76,7 +76,7 @@ Chaque nuit, un **défi** est tiré au hasard (par exemple « ne perds aucun cad
 - [x] D. L'arme double : ralentisseur le jour, canon la nuit avec un temps de recharge
 - [x] E. Les voleurs : ils vont au sapin, prennent un cadeau et s'enfuient ; un voleur tué rend le cadeau
 - [x] F. La difficulté progressive selon le nombre de cadeaux
-- [ ] G. Le défi de nuit et sa récompense, le cadeau doré
+- [x] G. Le défi de nuit et sa récompense, le cadeau doré
 - [ ] H. L'habillage : modèles 3D, animations, décor de Noël et d'Halloween, particules
 
 ### Équilibrage prévu (n = nombre de cadeaux sous le sapin)

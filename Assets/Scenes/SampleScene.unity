@@ -1832,6 +1832,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1294109688}
     - target: {fileID: 4289309445196907576, guid: 3d083df1ba6b40447b2cb35ae722f79b, type: 3}
+      propertyPath: challengeManager
+      value: 
+      objectReference: {fileID: 1879583901}
+    - target: {fileID: 4289309445196907576, guid: 3d083df1ba6b40447b2cb35ae722f79b, type: 3}
       propertyPath: carriedGiftVisual
       value: 
       objectReference: {fileID: 1495251267}
@@ -2976,8 +2980,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f32882daa0596a5429fcc47bbb6ae5bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DayNightManager
-  dayDuration: 25
-  nightDuration: 60
+  dayDuration: 30
+  nightDuration: 30
   sun: {fileID: 410087040}
   dayColor: {r: 1, g: 0.95, b: 0.85, a: 1}
   nightColor: {r: 0.4, g: 0.5, b: 1, a: 1}
@@ -2989,6 +2993,7 @@ MonoBehaviour:
   fogColor: {r: 0.18, g: 0.2, b: 0.32, a: 1}
   nightAmbient: 0.4
   giftSpawner: {fileID: 1940476710}
+  challengeManager: {fileID: 1879583901}
   spawner: {fileID: 2029391346}
 --- !u!4 &1294109689
 Transform:
@@ -4190,8 +4195,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 519a0917944517949a12abb46c9613cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChallengeManager
-  minTarget: 2
-  maxTarget: 5
+  minThieves: 2
+  maxThieves: 3
+  minCannonKills: 3
+  maxCannonKills: 5
 --- !u!4 &1879583902
 Transform:
   m_ObjectHideFlags: 0
@@ -4471,6 +4478,7 @@ MonoBehaviour:
   - {fileID: 2143792666}
   - {fileID: 1816041484}
   giftsPerDay: 4
+  goldenGiftPrefab: {fileID: 2778296484346764880, guid: 4be63d4fc753fcf49834444bdbcbb996, type: 3}
   tree: {fileID: 467343140}
   speedPerGift: 0.2
 --- !u!4 &1940476711

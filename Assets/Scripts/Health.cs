@@ -24,12 +24,12 @@ public class Health : MonoBehaviour
         Debug.Log(name + " : " + hp + " PV");
         if (hp <= 0)
         {
-            // Si c'est une créature, on prévient le gestionnaire de défi
-            Creature creature = GetComponent<Creature>();
+            // Si c'est un voleur, on prévient le gestionnaire de défi
+            Thief thief = GetComponent<Thief>();
             GameObject manager = GameObject.Find("ChallengeManager");
-            if (creature != null && manager != null)
+            if (thief != null && manager != null)
             {
-                manager.GetComponent<ChallengeManager>().CreatureKilled(creature.IsSlowed());
+                manager.GetComponent<ChallengeManager>().ThiefKilled();
             }
 
             if (destroyOnDeath)

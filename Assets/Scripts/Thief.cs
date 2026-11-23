@@ -13,6 +13,7 @@ public class Thief : MonoBehaviour
 
     private NavMeshAgent agent;
     private ChristmasTree tree;
+    private ChallengeManager challengeManager;
     private Vector3 exitPoint;     // il s'enfuit là où il est apparu
     private bool hasGift = false;  // porte-t-il un cadeau volé ?
     private bool leaving = false;  // a-t-il fini sa mission au sapin ?
@@ -27,6 +28,12 @@ public class Thief : MonoBehaviour
         if (treeObject != null)
         {
             tree = treeObject.GetComponent<ChristmasTree>();
+        }
+
+        GameObject managerObject = GameObject.Find("ChallengeManager");
+        if (managerObject != null)
+        {
+            challengeManager = managerObject.GetComponent<ChallengeManager>();
         }
 
         if (carriedGiftVisual != null)
@@ -64,6 +71,10 @@ public class Thief : MonoBehaviour
                 if (hasGift)
                 {
                     Debug.Log("Le voleur s'est échappé avec un cadeau...");
+                    if (challengeManager != null)
+                    {
+                        challengeManager.GiftLost();
+                    }
                 }
                 hasGift = false; // le cadeau est perdu : il ne doit pas revenir dans OnDestroy
                 Destroy(gameObject);

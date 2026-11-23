@@ -31,6 +31,9 @@ public class DayNightManager : MonoBehaviour
     [Tooltip("Fait apparaître les cadeaux farceurs au début de chaque jour")]
     [SerializeField] private GiftSpawner giftSpawner;
 
+    [Header("Défi de nuit")]
+    [SerializeField] private ChallengeManager challengeManager;
+
     [Header("Monstres")]
     [Tooltip("Le Spawner n'est actif que la nuit")]
     [SerializeField] private Spawner spawner;
@@ -82,6 +85,12 @@ public class DayNightManager : MonoBehaviour
 
         giftSpawner.SpawnGifts();
 
+        // Fin du défi de la nuit : s'il est réussi, un cadeau doré apparaît en plus
+        if (challengeManager.EndChallenge())
+        {
+            giftSpawner.SpawnGoldenGift();
+        }
+
         Debug.Log("Le jour se lève : c'est Noël !");
     }
 
@@ -100,6 +109,7 @@ public class DayNightManager : MonoBehaviour
         nightVolume.SetActive(true); // post-traitement de nuit : bloom, vignette, couleurs froides
 
         spawner.enabled = true;
+        challengeManager.StartChallenge();
 
         // Les cadeaux farceurs pas attrapés disparaissent à la tombée de la nuit
         GameObject[] gifts = GameObject.FindGameObjectsWithTag("Gift");

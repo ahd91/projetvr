@@ -270,6 +270,17 @@ Les bornes sont appliquées avec \texttt{Mathf.Max} et \texttt{Mathf.Min}, qui r
 
 L'idée est la suivante : au début, on gagne environ 3 cadeaux par cycle, car les nuits sont calmes. Près de la victoire, les voleurs sont nombreux et en emportent 1 ou 2 par nuit, ce qui ralentit la progression.
 
+\subsection{Étape G : le défi de nuit et le cadeau doré}
+Le sujet impose au moins un défi. L'ancien système (\og tue X créatures \fg{}) a été remplacé par un défi de nuit, tiré au hasard à chaque tombée de la nuit parmi trois :
+\begin{itemize}
+  \item \og ne laisse aucun voleur s'enfuir avec un cadeau \fg{} : raté dès qu'un voleur s'échappe avec un cadeau, réussi sinon au lever du jour ;
+  \item \og tue X voleurs \fg{}, avec X égal à 2 ou 3 ;
+  \item \og tue X créatures au canon \fg{}, avec X entre 3 et 5.
+\end{itemize}
+Les autres scripts préviennent le \texttt{ChallengeManager} au bon moment : \texttt{Health} quand un voleur meurt, \texttt{Thief} quand il s'échappe avec un cadeau, et le canon du \texttt{PlayerController} pour chaque créature qu'il tue. Le \texttt{DayNightManager} lance le défi à la tombée de la nuit et le termine au lever du jour.
+
+La récompense est un \textbf{cadeau doré}, qui apparaît le lendemain parmi les cadeaux farceurs. Il vaut 2 cadeaux, mais il est plus rapide. J'ai préféré cette récompense à un simple cadeau offert : un cadeau gratuit rapprocherait trop vite de la victoire, et rendrait en même temps la nuit suivante plus difficile. Avec le cadeau doré, la récompense se mérite une deuxième fois, et elle relie la nuit à la journée qui suit. C'est le même prefab que le cadeau normal, avec un matériau doré et deux réglages différents (sa valeur et sa vitesse).
+
 % TODO : étapes B à H à compléter au fur et à mesure.
 
 % =====================================================================
@@ -299,8 +310,8 @@ Cette partie décrit la version actuelle de chaque script : son rôle, ses param
 Les scripts se retrouvent entre eux de trois façons, toutes vues en cours :
 \begin{itemize}
   \item \textbf{par Tag} : \texttt{GameObject.FindWithTag("Player")} et \texttt{FindGameObjectsWithTag("Creature")} ;
-  \item \textbf{par nom} : \texttt{GameObject.Find("ChallengeManager")} ;
-  \item \textbf{par référence glissée dans l'Inspector} : le HUD reçoit directement le \texttt{Health} du joueur et le \texttt{ChallengeManager}.
+  \item \textbf{par nom} : \texttt{GameObject.Find("ChallengeManager")} et \texttt{GameObject.Find("GiftZone")} ;
+  \item \textbf{par référence glissée dans l'Inspector} : le HUD, le \texttt{DayNightManager}, les spawners et le joueur reçoivent directement les objets de la scène dont ils ont besoin.
 \end{itemize}
 
 \begin{table}[H]
@@ -310,12 +321,18 @@ Les scripts se retrouvent entre eux de trois façons, toutes vues en cours :
 \toprule
 \textbf{Script appelant} & \textbf{Méthode appelée} & \textbf{Quand} \\
 \midrule
-\texttt{PlayerController} & \texttt{Health.TakeDamage()} & tir (clic gauche) qui touche \\
-\texttt{PlayerController} & \texttt{Creature.Slow()} & capacité (clic droit) qui touche \\
+\texttt{PlayerController} & \texttt{Health.TakeDamage()} & tir ou canon qui touche \\
+\texttt{PlayerController} & \texttt{Creature.Slow()}, \texttt{Gift.Slow()} & ralentisseur (clic droit le jour) \\
+\texttt{PlayerController} & \texttt{ChristmasTree.AddGift()} & dépôt d'un cadeau (E) \\
+\texttt{PlayerController} & \texttt{ChallengeManager.CannonKill()} & créature tuée au canon \\
 \texttt{Creature} & \texttt{Health.TakeDamage()} du joueur & créature assez proche \\
-\texttt{Health} & \texttt{ChallengeManager.CreatureKilled()} & mort d'une créature \\
-\texttt{HUD} & \texttt{Health.GetHp()} & à chaque frame \\
-\texttt{HUD} & \texttt{ChallengeManager.GetScore()} et \texttt{GetChallengeText()} & à chaque frame \\
+\texttt{Thief} & \texttt{ChristmasTree.RemoveGift()} & voleur entré dans la zone du sapin \\
+\texttt{Thief} & \texttt{ChallengeManager.GiftLost()} & voleur échappé avec un cadeau \\
+\texttt{ChristmasTree} & \texttt{Thief.ReachTree()} & voleur entré dans la zone (trigger) \\
+\texttt{Health} & \texttt{ChallengeManager.ThiefKilled()} & mort d'un voleur \\
+\texttt{DayNightManager} & \texttt{GiftSpawner.SpawnGifts()}, \texttt{SpawnGoldenGift()} & lever du jour \\
+\texttt{DayNightManager} & \texttt{ChallengeManager.StartChallenge()}, \texttt{EndChallenge()} & tombée de la nuit, lever du jour \\
+\texttt{HUD} & \texttt{GetHp()}, \texttt{GetScore()}, \texttt{GetChallengeText()}, \ldots & à chaque frame \\
 Bouton \og Rejouer \fg{} & \texttt{HUD.Restart()} & clic (événement OnClick) \\
 \bottomrule
 \end{tabular}
@@ -394,13 +411,13 @@ Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concer
 \textbf{Fonctionnement.}
 \begin{itemize}
   \item \texttt{TakeDamage(int amount)} retire des PV. Si l'objet est déjà à 0, le coup est ignoré, car \texttt{Destroy} n'agit qu'à la fin de la frame et un deuxième coup pourrait arriver avant.
-  \item À 0 PV, si l'objet a aussi un script \texttt{Creature}, \texttt{Health} prévient le \texttt{ChallengeManager} et lui dit si la créature était ralentie.
+  \item À 0 PV, si l'objet a aussi un script \texttt{Thief}, \texttt{Health} prévient le \texttt{ChallengeManager} (défi \og tue X voleurs \fg{}).
   \item Le joueur n'est pas détruit (\texttt{destroyOnDeath} décoché), sinon sa caméra disparaîtrait. C'est le HUD qui détecte sa mort avec \texttt{GetHp()}.
 \end{itemize}
 
 \textbf{Limites et problèmes connus.}
 \begin{itemize}
-  \item \textbf{\texttt{Health} connaît les défis.} Un script de points de vie ne devrait normalement pas savoir qu'il existe des créatures et des défis. Ce choix garde le code court, mais si on ajoute d'autres façons de mourir ou d'autres défis, ce script devra encore grossir.
+  \item \textbf{\texttt{Health} connaît les défis.} À la mort, il vérifie si l'objet est un voleur pour prévenir le \texttt{ChallengeManager}. Un script de points de vie ne devrait normalement pas savoir qu'il existe des voleurs et des défis. Ce choix garde le code court, mais si on ajoute d'autres façons de mourir ou d'autres défis, ce script devra encore grossir.
   \item \textbf{Recherche par nom.} \texttt{GameObject.Find("ChallengeManager")} parcourt la scène à chaque mort. C'est acceptable avec 10 créatures au maximum, mais c'est fragile si l'objet est renommé (voir la vue d'ensemble).
   \item \textbf{Les PV sont initialisés dans \texttt{Start()}.} Une créature touchée dans la même frame que son apparition, avant son \texttt{Start()}, aurait encore 0 PV et ignorerait le coup. C'est très peu probable en jeu. L'initialisation dans \texttt{Awake()}, qui est appelée plus tôt, éviterait ce cas.
   \item \textbf{Les PV ne peuvent que baisser.} Il n'y a pas de soin et pas de maximum vérifié. Ce n'est pas nécessaire pour l'instant.
@@ -511,34 +528,37 @@ Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et 
 % ---------------------------------------------------------------------
 \subsection{ChallengeManager}
 
-\textbf{Rôle.} Générer un défi, suivre sa progression et gérer le score.
+\textbf{Rôle.} Tirer le défi de la nuit, suivre sa progression, dire au lever du jour s'il est réussi, et compter les défis réussis.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{llp{8cm}}
+\begin{tabular}{llp{7cm}}
 \toprule
 \textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
 \midrule
-\texttt{minTarget} & 2 & nombre minimum de créatures à tuer \\
-\texttt{maxTarget} & 5 & nombre maximum de créatures à tuer \\
+\texttt{minThieves}, \texttt{maxThieves} & 2 et 3 & objectif du défi \og tue X voleurs \fg{} \\
+\texttt{minCannonKills}, \texttt{maxCannonKills} & 3 et 5 & objectif du défi \og tue X créatures au canon \fg{} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Fonctionnement.}
 \begin{itemize}
-  \item Un défi est décrit par trois variables : \texttt{challengeType} (0 = créatures, 1 = créatures ralenties), \texttt{target} (l'objectif) et \texttt{progress} (le nombre déjà tué).
-  \item \texttt{NewChallenge()} tire le type et l'objectif avec \texttt{Random.Range}. On écrit \texttt{maxTarget + 1}, car la borne haute de \texttt{Random.Range} sur des entiers est exclue.
-  \item \texttt{CreatureKilled(bool wasSlowed)} ignore les créatures non ralenties pendant un défi de type 1. Sinon, elle fait avancer le défi. Quand l'objectif est atteint, le score augmente et un nouveau défi est tiré.
-  \item \texttt{GetChallengeText()} et \texttt{GetScore()} servent à l'affichage dans le HUD.
+  \item Le défi est décrit par quelques variables : \texttt{challengeType} (0, 1 ou 2), \texttt{target} et \texttt{progress} pour les objectifs chiffrés, et trois booléens : \texttt{active} (un défi est en cours), \texttt{succeeded} et \texttt{failed}.
+  \item \texttt{StartChallenge()}, appelée à la tombée de la nuit, remet tout à zéro et tire le type et l'objectif avec \texttt{Random.Range}. On écrit \texttt{max + 1}, car la borne haute de \texttt{Random.Range} sur des entiers est exclue.
+  \item \texttt{ThiefKilled()}, \texttt{CannonKill()} et \texttt{GiftLost()} sont appelées par les autres scripts. Chacune ne fait quelque chose que si un défi est actif et s'il est du bon type. Les deux premières font avancer \texttt{progress} ; la troisième met \texttt{failed} à vrai.
+  \item \texttt{EndChallenge()}, appelée au lever du jour, termine le défi et renvoie \texttt{true} s'il est réussi. Le défi \og aucun cadeau perdu \fg{} n'est jugé qu'à ce moment-là, puisqu'on ne peut savoir qu'à la fin de la nuit qu'aucun voleur ne s'est échappé.
+  \item \texttt{GetChallengeText()} construit le texte du HUD : le défi en cours la nuit, et le résultat de la nuit précédente le jour. \texttt{GetScore()} renvoie le nombre de défis réussis.
+  \item Pour le canon, le \texttt{PlayerController} ne compte que les créatures qui avaient encore des PV avant l'explosion et n'en ont plus après. Une créature déjà morte n'est donc pas comptée deux fois.
 \end{itemize}
 
 \textbf{Limites et problèmes connus.}
 \begin{itemize}
-  \item \textbf{L'état ralenti est vérifié au moment de la mort.} Si le ralentissement se termine juste avant le coup fatal, la créature ne compte pas pour un défi \og ralenties \fg{}. C'est logique, mais ça peut surprendre le joueur. Un message le signale dans la Console, mais il n'apparaît pas à l'écran.
-  \item \textbf{Le même défi peut revenir deux fois de suite}, puisque le tirage est indépendant du défi précédent.
-  \item \textbf{Le score ne dépend pas de la difficulté.} Un défi à 5 créatures rapporte autant qu'un défi à 2.
-  \item \textbf{Les types de défi sont des nombres.} \texttt{0} et \texttt{1} ne sont pas parlants. Avec plus de types, un \texttt{switch} (vu en cours) ou une énumération rendrait le code plus lisible.
+  \item \textbf{Les types de défi sont des nombres.} \texttt{0}, \texttt{1} et \texttt{2} ne sont pas parlants dans le code. Un \texttt{switch} (vu en cours) ou une énumération rendrait le code plus lisible, surtout si on ajoute d'autres défis.
+  \item \textbf{Le même défi peut revenir plusieurs nuits de suite}, puisque le tirage ne tient pas compte du défi précédent.
+  \item \textbf{Le défi \og tue X voleurs \fg{} dépend du hasard.} Avec peu de cadeaux sous le sapin, il y a seulement 20\,\% de voleurs. Une nuit peut donc ne pas en contenir assez pour réussir le défi.
+  \item \textbf{Un défi raté n'a pas de conséquence.} On perd seulement la récompense. Une petite pénalité rendrait le défi plus important.
+  \item \textbf{Le gestionnaire est trouvé par son nom} par \texttt{Health} et \texttt{Thief}. Si l'objet \texttt{ChallengeManager} est renommé, les défis ne progressent plus, sans message d'erreur.
 \end{itemize}
 
 % ---------------------------------------------------------------------
