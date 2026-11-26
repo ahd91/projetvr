@@ -31,7 +31,7 @@
 \graphicspath{{images/}}
 
 \title{ZZ2 -- Réalité virtuelle\\TP final : Noël contre Halloween}
-\author{Ahmed Ladhari}
+\author{LADHARI Ahmed \and MOHAMED ALY M. Aly}
 \date{\today}
 
 \begin{document}
@@ -43,9 +43,9 @@
 % =====================================================================
 \section{Introduction}
 
-Ce TP consiste à réaliser un petit jeu sous Unity qui utilise les notions vues en cours : le raycast, les prefabs, la navigation, l'interface (UI) et l'import d'assets 3D. J'ai choisi le sujet proposé : un jeu de tir dans un univers Halloween à la période de Noël, inspiré de \emph{L'étrange Noël de Mr Jack}. Le joueur doit combattre des créatures qui apparaissent au fur et à mesure et le poursuivent. Son arme possède une capacité spéciale, et un défi lui est proposé pendant la partie.
+Ce TP consiste à réaliser un petit jeu sous Unity qui utilise les notions vues en cours : le raycast, les prefabs, la navigation, l'interface (UI) et l'import d'assets 3D. On a choisi le sujet proposé : un jeu de tir dans un univers Halloween à la période de Noël, inspiré de \emph{L'étrange Noël de Mr Jack}. Le joueur doit combattre des créatures qui apparaissent au fur et à mesure et le poursuivent. Son arme possède une capacité spéciale, et un défi lui est proposé pendant la partie.
 
-Comme conseillé dans le sujet, je me suis d'abord concentré sur la logique du jeu avec des formes simples (cubes et capsules) : c'est la première version, décrite dans les étapes 1 à 7. Je l'ai ensuite enrichie pour en faire un jeu complet, qui alterne le jour (Noël) et la nuit (Halloween), avec des modèles 3D, des animations et des effets visuels. Le jeu final se joue à la troisième personne (TPS), avec le Père Noël comme personnage.
+Comme conseillé dans le sujet, on s'est d'abord concentré sur la logique du jeu avec des formes simples (cubes et capsules) : c'est la première version, décrite dans les étapes 1 à 7. On l'a ensuite enrichie pour en faire un jeu complet, qui alterne le jour (Noël) et la nuit (Halloween), avec des modèles 3D, des animations et des effets visuels. Le jeu final se joue à la troisième personne (TPS), avec le Père Noël comme personnage.
 
 Le projet a été réalisé avec \textbf{Unity 6} (version 6000.6.9f1), le pipeline de rendu URP, le nouvel Input System et le package \textbf{AI Navigation}.
 
@@ -106,21 +106,14 @@ E & Attraper le cadeau visé (ralenti), le déposer au pied du sapin, ou ramasse
 % =====================================================================
 \section{Démarche}
 
-J'ai avancé par petites étapes. Chaque étape ajoute une seule fonctionnalité, que je testais avant de passer à la suivante.
-
+On a avancé en trois temps : d'abord la logique, avec des cubes et des capsules, puis les règles du jeu jour/nuit, puis le décor et l'équilibrage. Chaque ajout était testé avant le suivant. 
 \subsection{Étape 1 : la scène et la NavMesh}
-J'ai créé un sol (un \emph{Plane} de $50 \times 50$ m), quatre murs et quelques cubes comme obstacles. Tous ces objets sont rangés dans un objet vide \texttt{Level} et placés sur un layer \texttt{Ground}, que le \texttt{PlayerController} utilise pour savoir si le joueur touche le sol.
+On a créé un sol (un \emph{Plane} de $50 \times 50$ m), quatre murs et quelques cubes comme obstacles. Tous ces objets sont rangés dans un objet vide \texttt{Level} et placés sur un layer \texttt{Ground}, que le \texttt{PlayerController} utilise pour savoir si le joueur touche le sol.
 
-J'ai ensuite ajouté un composant \textbf{NavMesh Surface} et calculé la NavMesh (bouton \emph{Bake}). La NavMesh est la surface sur laquelle les agents IA ont le droit de marcher. Unity la calcule à partir de la géométrie de la scène, et elle contourne automatiquement les obstacles.
-
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=0.7\textwidth]{navmesh.png}
-%   \caption{La NavMesh calculée sur l'arène (en bleu)}
-% \end{figure}
+On a ensuite ajouté un composant \textbf{NavMesh Surface} et calculé la NavMesh (bouton \emph{Bake}). La NavMesh est la surface sur laquelle les agents IA ont le droit de marcher. Unity la calcule à partir de la géométrie de la scène, et elle contourne automatiquement les obstacles.
 
 \subsection{Étape 2 : le tir par raycast}
-Le \texttt{PlayerController} fourni lançait déjà un rayon depuis le centre de l'écran, mais il ne faisait rien de ce qu'il touchait. J'ai créé un script \texttt{Health} qui donne des points de vie à un objet. Quand le rayon touche un objet qui possède ce script, il lui retire des points de vie :
+Le \texttt{PlayerController} fourni lançait déjà un rayon depuis le centre de l'écran, mais il ne faisait rien de ce qu'il touchait. On a créé un script \texttt{Health} qui donne des points de vie à un objet. Quand le rayon touche un objet qui possède ce script, il lui retire des points de vie :
 
 \begin{lstlisting}
 private void FirePressed(InputAction.CallbackContext obj)
@@ -137,9 +130,9 @@ private void FirePressed(InputAction.CallbackContext obj)
 }
 \end{lstlisting}
 
-\texttt{Physics.Raycast} lance un rayon invisible et renvoie le premier collider touché. C'est la méthode classique du \og hitscan \fg{} pour les armes à tir instantané. J'ai mis le calcul du rayon dans une fonction \texttt{ShootRay}, qui renvoie l'objet touché grâce à un paramètre \texttt{out}, comme dans l'exemple du cours. Le tir et la capacité spéciale peuvent ainsi utiliser le même rayon.
+\texttt{Physics.Raycast} lance un rayon invisible et renvoie le premier collider touché. C'est la méthode classique du \og hitscan \fg{} pour les armes à tir instantané. On a mis le calcul du rayon dans une fonction \texttt{ShootRay}, qui renvoie l'objet touché grâce à un paramètre \texttt{out}, comme dans l'exemple du cours. Le tir et la capacité spéciale peuvent ainsi utiliser le même rayon.
 
-J'ai aussi ajouté un viseur : une petite \emph{Image} au centre d'un \emph{Canvas}.
+On a aussi ajouté un viseur : une petite \emph{Image} au centre d'un \emph{Canvas}.
 
 \subsection{Étape 3 : la créature}
 La créature est une capsule avec un composant \textbf{NavMeshAgent} et un script \texttt{Creature}. À chaque frame, elle donne la position du joueur à l'agent, qui calcule tout seul le chemin sur la NavMesh :
@@ -148,13 +141,13 @@ La créature est une capsule avec un composant \textbf{NavMeshAgent} et un scrip
 agent.SetDestination(player.transform.position);
 \end{lstlisting}
 
-Le joueur est retrouvé grâce à son Tag avec \texttt{GameObject.FindWithTag("Player")}. Pour les dégâts, la créature mesure sa distance au joueur avec \texttt{Vector3.Distance}. Si elle est assez proche, elle lui retire un point de vie, au maximum une fois par seconde (un \emph{cooldown} basé sur \texttt{Time.time}). J'en ai ensuite fait un \textbf{prefab} pour pouvoir en créer autant que nécessaire.
+Le joueur est retrouvé grâce à son Tag avec \texttt{GameObject.FindWithTag("Player")}. Pour les dégâts, la créature mesure sa distance au joueur avec \texttt{Vector3.Distance}. Si elle est assez proche, elle lui retire un point de vie, au maximum une fois par seconde (un \emph{cooldown} basé sur \texttt{Time.time}). On en a ensuite fait un \textbf{prefab} pour pouvoir en créer autant que nécessaire.
 
 \subsection{Étape 4 : le spawner}
 Le script \texttt{Spawner} fait apparaître une créature toutes les 3 secondes avec \texttt{Instantiate}. Il tire au hasard un point parmi quatre points placés dans les coins de l'arène. Si ce point est à moins de 15 m du joueur, il n'y fait rien apparaître et réessaie au tour suivant. Cela évite qu'une créature apparaisse sur le joueur (le \og spawn kill \fg{}). Le nombre de créatures en vie est limité à 10, pour ne pas faire chuter les performances. Le spawner reçoit un tableau de prefabs, ce qui permettra d'avoir plusieurs formes de créatures.
 
 \subsection{Étape 5 : la capacité spéciale (ralentir)}
-Au clic droit, le même rayon que pour le tir est lancé. Si une créature est touchée, elle est ralentie pendant 3 secondes : elle passe à 30\,\% de sa vitesse et devient cyan, pour que le joueur voie l'effet. J'ai ajouté une action \texttt{Slow} dans le fichier \emph{Input Actions}, branchée exactement comme le tir du code fourni.
+Au clic droit, le même rayon que pour le tir est lancé. Si une créature est touchée, elle est ralentie pendant 3 secondes : elle passe à 30\,\% de sa vitesse et devient cyan, pour que le joueur voie l'effet. On a ajouté une action \texttt{Slow} dans le fichier \emph{Input Actions}, branchée exactement comme le tir du code fourni.
 
 Le ralentissement est géré avec une heure de fin plutôt qu'avec un compteur :
 
@@ -183,757 +176,87 @@ X est un nombre au hasard entre 2 et 5. Quand une créature meurt, le script \te
 \subsection{Étape 7 : le HUD et le Game Over}
 Le script \texttt{HUD} met à jour trois textes à chaque frame : la vie, le score et le défi en cours avec sa progression. Quand la vie du joueur tombe à 0, il affiche un panneau \og Game Over \fg{}, met le jeu en pause avec \texttt{Time.timeScale = 0} et libère la souris. Le bouton \og Rejouer \fg{} appelle la méthode publique \texttt{Restart()} grâce à son événement \emph{OnClick}, comme vu en cours, et recharge la scène.
 
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=0.7\textwidth]{hud.png}
-%   \caption{Le HUD pendant une partie}
-% \end{figure}
-
 \subsection{Changement de conception : un jeu jour/nuit}
-Une fois cette première version terminée, j'ai voulu rendre le jeu plus riche et plus beau. J'ai importé deux packs gratuits de l'Unity Asset Store : \emph{Christmas Pack FREE} (ithappy) et \emph{Poly Halloween Pack} (polyperfect). Le jeu alterne maintenant deux phases :
+Une fois cette première version terminée, on a voulu rendre le jeu plus riche et plus beau. On a importé deux packs gratuits de l'Unity Asset Store : \emph{Christmas Pack FREE} (ithappy) et \emph{Poly Halloween Pack} (polyperfect). Le jeu alterne maintenant deux phases :
 \begin{itemize}
   \item \textbf{le jour, c'est Noël} : des cadeaux ensorcelés s'enfuient, et il faut les ralentir, les attraper et les déposer sous le sapin ;
   \item \textbf{la nuit, c'est Halloween} : il faut survivre et protéger le sapin contre des chasseurs, qui attaquent le joueur, et des voleurs, qui emportent les cadeaux.
 \end{itemize}
 On gagne avec 10 cadeaux sous le sapin. Plus il y a de cadeaux, plus les nuits sont difficiles, pour qu'une partie dure environ 4 à 5 cycles. Un défi de nuit, tiré au hasard, est récompensé par un cadeau doré le lendemain.
 
-\subsection{Étape A : le cycle jour/nuit}
-Le script \texttt{DayNightManager} alterne les deux phases avec un chrono, sur le même principe que les cooldowns : il retient l'heure de fin de la phase (\texttt{phaseEndTime}) et la compare à \texttt{Time.time}. Au changement de phase, il modifie l'ambiance grâce à \texttt{RenderSettings}, qui donne accès aux réglages d'éclairage de la scène :
-\begin{itemize}
-  \item la couleur et l'intensité de la lumière directionnelle (le soleil) ;
-  \item le ciel (\texttt{RenderSettings.skybox}) : le skybox du pack de Noël le jour, celui du pack Halloween la nuit ;
-  \item le brouillard et la lumière ambiante, activés et réduits la nuit ;
-  \item un \emph{Global Volume} de post-traitement (bloom, vignette, couleurs froides), activé seulement la nuit avec \texttt{SetActive}.
-\end{itemize}
-Après un changement de ciel, \texttt{DynamicGI.UpdateEnvironment()} recalcule la lumière ambiante. Sans cet appel, la scène garderait l'éclairage du ciel précédent. Enfin, le spawner de monstres n'est actif que la nuit (\texttt{spawner.enabled}), et les monstres encore présents sont détruits au lever du jour. Le HUD affiche la phase en cours et le temps restant.
+\subsection{Étapes A et B : le cycle et le sapin}
+Le \texttt{DayNightManager} alterne les deux phases en comparant \texttt{phaseEndTime} à \texttt{Time.time}. À chaque bascule, il change la lumière, le ciel, le brouillard et le post-traitement, puis \texttt{DynamicGI.UpdateEnvironment()} recalcule la lumière ambiante. Le spawner n'est actif que la nuit, et les monstres restants sont détruits au lever du jour. Au pied du sapin, une zone \textbf{Is Trigger} sait si le joueur est là sans le bloquer. Dix cadeaux désactivés s'affichent un par un avec \texttt{SetActive}. À 10, le HUD met le jeu en pause. Avant d'avoir de vrais cadeaux, la touche E en ajoutait un dans la zone, pour tester le compteur.
 
-\subsection{Étape B : le sapin et le compteur de cadeaux}
-Le sapin vient du pack de Noël. À son pied, j'ai ajouté un objet vide \texttt{GiftZone} avec un \emph{Sphere Collider} en mode \textbf{Is Trigger} et le script \texttt{ChristmasTree}. Un trigger ne bloque pas les objets : il signale seulement qu'un objet entre ou sort de sa zone, avec les fonctions \texttt{OnTriggerEnter} et \texttt{OnTriggerExit} (notion d'interaction logique du cours V). Le script retient ainsi si le joueur se trouve au pied du sapin.
-
-Les cadeaux déposés sont visibles : dix modèles de cadeaux sont posés sous le sapin et désactivés au départ. Quand il y a $n$ cadeaux, le script active les $n$ premiers avec une boucle \texttt{for} et \texttt{SetActive}. Le HUD affiche le compteur. À 10 cadeaux, il affiche un écran de victoire et met le jeu en pause, sur le même principe que le Game Over.
-
-Pour tester cette étape avant d'avoir des cadeaux à ramasser, la nouvelle touche \textbf{E} (une action \texttt{Interact} ajoutée dans l'Input System) ajoutait directement un cadeau quand le joueur était dans la zone.
-
-\subsection{Étape C : les cadeaux farceurs}
-Le jour, le \texttt{GiftSpawner} fait apparaître 4 cadeaux sur des points tirés au hasard. Chaque cadeau est un prefab avec un \texttt{NavMeshAgent} et le script \texttt{Gift}. Quand le joueur s'approche à moins de 8 m, le cadeau calcule un point situé à l'opposé du joueur et s'y dirige :
+\subsection{Étapes C et D : les cadeaux et l'arme}
+Chaque jour, 4 cadeaux apparaissent. À moins de 8 m, le cadeau fuit dans la direction opposée au joueur :
 \begin{lstlisting}
 Vector3 away = transform.position - player.transform.position;
 away.y = 0;
 Vector3 target = transform.position + away.normalized * fleeStep;
 agent.SetDestination(target);
 \end{lstlisting}
-La soustraction de deux positions donne le vecteur qui va du joueur vers le cadeau. \texttt{normalized} le ramène à une longueur de 1, et on le multiplie par la distance de fuite voulue. C'est le troisième usage de la navigation dans le jeu : les chasseurs poursuivent le joueur, les voleurs vont au sapin, et les cadeaux fuient.
+La touche E l'attrape s'il est ralenti et à moins de 3 m, puis le dépose sous le sapin. Ceux qui restent disparaissent à la tombée de la nuit. Le clic droit sert à ce ralentissement le jour. La nuit, c'est un canon : le rayon donne le point d'impact, \texttt{Physics.OverlapSphere} blesse tout autour sauf le joueur, puis 5 secondes de recharge, sur le même principe qu'un cooldown. Le HUD affiche l'arme active et le temps restant.
 
-Un cadeau trop rapide ne peut pas être attrapé. Il faut d'abord le ralentir avec la capacité spéciale (clic droit), qui fonctionne comme sur les créatures. La touche E a alors deux usages : les mains vides, elle attrape le cadeau visé s'il est ralenti et à moins de 3 m (on réutilise le raycast du tir et \texttt{hit.distance}) ; avec un cadeau, elle le dépose si le joueur est dans la zone du sapin. Le cadeau ramassé est détruit, et un modèle de cadeau placé devant la caméra est affiché avec \texttt{SetActive} pour montrer qu'on le porte. Les cadeaux qui n'ont pas été attrapés disparaissent à la tombée de la nuit.
-
-\subsection{Étape D : l'arme double}
-Le clic droit change de rôle selon la phase. Le \texttt{PlayerController} demande au \texttt{DayNightManager} s'il fait nuit (\texttt{IsNight()}) :
-\begin{itemize}
-  \item \textbf{le jour}, c'est le ralentisseur, qui sert à attraper les cadeaux farceurs ;
-  \item \textbf{la nuit}, c'est un \textbf{canon} : un tir explosif très puissant, suivi de 5 secondes de recharge.
-\end{itemize}
-Le canon utilise d'abord le raycast pour trouver le point d'impact (\texttt{hit.point}). Il récupère ensuite tous les colliders dans une sphère autour de ce point avec \texttt{Physics.OverlapSphere}, et inflige des dégâts à tous ceux qui ont un \texttt{Health}. On obtient ainsi un effet de zone, qui permet de tuer un groupe de monstres d'un coup :
-\begin{lstlisting}
-Collider[] inExplosion = Physics.OverlapSphere(hit.point, cannonRadius);
-foreach (Collider col in inExplosion)
-{
-    if (col.CompareTag("Player"))
-    {
-        continue; // le joueur ne se blesse pas avec sa propre explosion
-    }
-    Health health = col.GetComponent<Health>();
-    if (health != null)
-    {
-        health.TakeDamage(cannonDamage);
-    }
-}
-\end{lstlisting}
-La recharge fonctionne comme les cooldowns des créatures : on retient l'heure à laquelle le canon sera prêt et on la compare à \texttt{Time.time}. Le HUD affiche l'arme active et le temps de recharge restant.
-
-\subsection{Étape E : les voleurs}
-La nuit, le spawner mélange maintenant deux types de monstres. À chaque apparition, \texttt{Random.value} tire un nombre entre 0 et 1. En dessous de \texttt{thiefChance} (30\,\%), c'est un voleur ; sinon, c'est un chasseur, qui attaque le joueur comme avant.
-
-Le voleur, avec le script \texttt{Thief}, ignore complètement le joueur. Il va au sapin, entre dans la zone trigger, prend un cadeau, puis s'enfuit vers son point d'apparition. S'il y arrive, il disparaît avec le cadeau. S'il est tué avant, le cadeau revient sous le sapin. Ce retour utilise \texttt{OnDestroy()}, une fonction qu'Unity appelle quand un objet est détruit, quelle que soit la raison. Elle couvre donc à la fois le voleur tué et le voleur qui disparaît au lever du jour. S'il n'y a plus de cadeau sous le sapin, le voleur repart les mains vides.
-
-Ma première version déclenchait le vol quand le voleur arrivait à moins de 3 m du centre du sapin, mais elle ne marchait pas (voir les problèmes rencontrés). Le vol est maintenant détecté par la zone trigger du sapin.
-
-\subsection{Étape F : la difficulté progressive}
-Pour qu'une partie dure 4 à 5 cycles, la difficulté dépend du nombre $n$ de cadeaux sous le sapin. Le \texttt{Spawner} ne garde plus de valeurs fixes : trois petites fonctions recalculent les réglages à chaque apparition.
+\subsection{Étapes E et F : les voleurs et la difficulté}
+\texttt{Random.value} choisit un voleur ou un chasseur. Le voleur ignore le joueur, prend un cadeau dans la zone du sapin et fuit vers son point d'apparition. \texttt{OnDestroy()} rend le cadeau s'il est détruit avant d'y arriver. La difficulté dépend du nombre $n$ de cadeaux déjà déposés, et elle est recalculée à chaque apparition.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{lllll}
+\begin{tabular}{ll}
 \toprule
-\textbf{Réglage} & \textbf{Formule} & $n=0$ & $n=5$ & $n=9$ \\
+\textbf{Réglage} & \textbf{Formule} \\
 \midrule
-Créatures maximum & $3 + n$ & 3 & 8 & 12 \\
-Intervalle d'apparition & $4 - 0{,}2\,n$ (minimum 1,5 s) & 4 s & 3 s & 2,2 s \\
-Part de voleurs & $0{,}2 + 0{,}05\,n$ (maximum 0,8) & 20\,\% & 45\,\% & 65\,\% \\
-Vitesse des cadeaux le jour & $3 + 0{,}2\,n$ & 3 & 4 & 4,8 \\
+Créatures maximum & $3 + n$ \\
+Intervalle d'apparition & $4 - 0{,}2\,n$ (minimum 1,5 s) \\
+Part de voleurs & $0{,}2 + 0{,}05\,n$ (maximum 0,8) \\
+Vitesse des cadeaux le jour & $3 + 0{,}2\,n$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Les bornes sont appliquées avec \texttt{Mathf.Max} et \texttt{Mathf.Min}, qui renvoient la plus grande et la plus petite de deux valeurs. Comme le calcul est refait à chaque apparition, la difficulté baisse aussi en cours de nuit quand un voleur emporte un cadeau. Côté cadeaux, le \texttt{GiftSpawner} augmente la vitesse de l'agent juste après \texttt{Instantiate}, avant que le \texttt{Start()} du cadeau ne mémorise cette vitesse comme vitesse normale.
-
-L'idée est la suivante : au début, on gagne environ 3 cadeaux par cycle, car les nuits sont calmes. Près de la victoire, les voleurs sont nombreux et en emportent 1 ou 2 par nuit, ce qui ralentit la progression.
+Les bornes passent par \texttt{Mathf.Max} et \texttt{Mathf.Min}. La vitesse d'un cadeau est augmentée juste après \texttt{Instantiate}, avant que son \texttt{Start()} ne la mémorise.
 
 \subsection{Étape G : le défi de nuit et le cadeau doré}
-Le sujet impose au moins un défi. L'ancien système (\og tue X créatures \fg{}) a été remplacé par un défi de nuit, tiré au hasard à chaque tombée de la nuit parmi trois :
-\begin{itemize}
-  \item \og ne laisse aucun voleur s'enfuir avec un cadeau \fg{} : raté dès qu'un voleur s'échappe avec un cadeau, réussi sinon au lever du jour ;
-  \item \og tue X voleurs \fg{}, avec X égal à 2 ou 3 ;
-  \item \og tue X créatures au canon \fg{}, avec X entre 3 et 5.
-\end{itemize}
-Les autres scripts préviennent le \texttt{ChallengeManager} au bon moment : \texttt{Health} quand un voleur meurt, \texttt{Thief} quand il s'échappe avec un cadeau, et le canon du \texttt{PlayerController} pour chaque créature qu'il tue. Le \texttt{DayNightManager} lance le défi à la tombée de la nuit et le termine au lever du jour.
+L'ancien défi \og tue X créatures \fg{} est remplacé par un tirage parmi trois : ne laisser aucun voleur s'enfuir, tuer 2 ou 3 voleurs, ou tuer 3 à 5 créatures au canon. \texttt{Health}, \texttt{Thief} et le canon préviennent le \texttt{ChallengeManager}. La récompense est un cadeau doré, qui vaut 2 mais qu'il faut encore attraper.
 
-La récompense est un \textbf{cadeau doré}, qui apparaît le lendemain parmi les cadeaux farceurs. Il vaut 2 cadeaux, mais il est plus rapide. J'ai préféré cette récompense à un simple cadeau offert : un cadeau gratuit rapprocherait trop vite de la victoire, et rendrait en même temps la nuit suivante plus difficile. Avec le cadeau doré, la récompense se mérite une deuxième fois, et elle relie la nuit à la journée qui suit. C'est le même prefab que le cadeau normal, avec un matériau doré et deux réglages différents (sa valeur et sa vitesse).
+\subsection{Étapes H1 et H2 : le village et le tir visible}
+L'arène grise devient un village enneigé de 60 $\times$ 60 m : la place et quatre maisons au centre, le cimetière au nord, une forêt à l'est et à l'ouest, l'entrée au sud. Les anciens murs restent invisibles, leur collider empêche de sortir. La nuit, la neige et les bonshommes de neige sont échangés avec des citrouilles et des épouvantails. La NavMesh est recalculée autour des obstacles. Le raycast, lui, ne se voit pas : \texttt{Debug.DrawRay} ne sert que dans l'éditeur. Dans le jeu, \texttt{WeaponEffects} ajoute un sucre d'orge, un trait de 0,06 s (blanc, cyan ou orange) et des particules d'impact. Les colliders du sucre d'orge ont été retirés, sinon le rayon les touchait en premier.
 
-\subsection{Étape H1 : la carte du village}
-L'arène carrée entourée de murs gris, avec ses quelques cubes, n'était ni belle ni intéressante à jouer : les obstacles ne servaient presque à rien. Je l'ai remplacée par un village enneigé de 60 $\times$ 60 m, construit dans l'éditeur avec les modèles des deux packs :
-\begin{itemize}
-  \item \textbf{au centre}, une place avec le sapin, des bonhommes de neige et des lanternes ;
-  \item \textbf{autour de la place}, quatre maisons en pain d'épice, tournées vers le sapin. J'ai créé la maison à partir des murs, du toit, des portes et des fenêtres du pack de Noël, et j'en ai fait un prefab \texttt{House} réutilisé quatre fois. Les maisons sont de vrais obstacles : elles créent des ruelles, servent de couvert la nuit et permettent de coincer les cadeaux farceurs le jour ;
-  \item \textbf{au nord}, le cimetière du pack Halloween : un muret avec une grille au milieu, des tombes, des citrouilles allumées et des arbres morts ;
-  \item \textbf{à l'est et à l'ouest}, une forêt d'arbres morts et de rochers, ouverte par un chemin au milieu de chaque côté ;
-  \item \textbf{au sud}, une barrière et des sapins, à l'entrée du village.
-\end{itemize}
-Les quatre murs de l'arène sont restés, mais ils sont devenus invisibles : leur \emph{Mesh Renderer} est désactivé et leur \emph{Box Collider} est conservé. Ils empêchent toujours de sortir de la carte, et c'est le décor qui marque visuellement la limite. Le sol utilise un matériau de neige.
-
-Pour que la nuit ressemble vraiment à Halloween, une partie du décor change avec la phase : la nuit, les tas de neige deviennent des citrouilles allumées et les bonshommes de neige des épouvantails. Les citrouilles et les épouvantails sont posés à la même place que la décoration de jour qu'ils remplacent. Le \texttt{DayNightManager} a deux tableaux d'objets, \texttt{dayDecorations} et \texttt{nightDecorations}, remplis dans l'Inspector. À chaque changement de phase, il parcourt ces tableaux et active l'un et désactive l'autre avec \texttt{SetActive} :
-\begin{lstlisting}
-private void ShowDecorations(bool night)
-{
-    foreach (GameObject decoration in dayDecorations)
-    {
-        decoration.SetActive(night == false);
-    }
-    foreach (GameObject decoration in nightDecorations)
-    {
-        decoration.SetActive(night);
-    }
-}
-\end{lstlisting}
-Avec le bloom du post-traitement de nuit, la lumière des citrouilles ressort dans l'obscurité.
-
-La carte a aussi un sens pour le jeu. Les monstres apparaissent derrière la grille du cimetière et aux deux chemins de la forêt : on voit d'où ils arrivent, et on peut intercepter les voleurs sur leur trajet vers le sapin. Les cadeaux farceurs apparaissent dans les ruelles, loin du sapin, pour obliger le joueur à traverser le village. Après la construction, j'ai recalculé la NavMesh : elle contourne maintenant les maisons, les tombes et les arbres.
-
-\subsection{Étape H2 : un tir visible}
-Jusqu'ici, le tir était invisible : un raycast ne se voit pas. Le cours (VI.3) montre comment rendre le rayon visible avec \texttt{Debug.DrawRay}, mais cette ligne n'apparaît que dans la vue \emph{Scene} de l'éditeur, jamais dans le jeu : c'est un outil de débogage. Je l'ai gardé dans \texttt{ShootRay}, en rouge, pour vérifier la trajectoire des tirs pendant les tests.
-
-Pour le joueur, j'ai ajouté :
-\begin{itemize}
-  \item \textbf{une arme visible}, un sucre d'orge du pack de Noël tenu en bas à droite de l'écran. Ses colliders ont été retirés, sinon le raycast du joueur le toucherait en premier ;
-  \item \textbf{un trait lumineux} avec un \emph{LineRenderer}, un composant qui dessine une ligne entre deux points. La ligne part du bout de l'arme (un objet vide \texttt{Muzzle}) et va jusqu'au point touché (\texttt{hit.point}), ou à 100 m devant si on ne touche rien. Elle reste affichée 0,06 s. Sa couleur indique l'arme : blanc pour le tir, cyan pour le ralentisseur, orange et plus épais pour le canon ;
-  \item \textbf{des particules} : des étincelles au point d'impact, et une explosion avec de la fumée pour le canon. Ce sont des prefabs de \emph{Particle System}, créés avec \texttt{Instantiate} au point touché, puis détruits après quelques secondes avec \texttt{Destroy(effet, durée)} ;
-  \item \textbf{une animation de recul} : un clip d'animation fait reculer et relever le sucre d'orge en 0,15 s. Un \emph{Animator Controller} contient deux états, \texttt{Idle} et \texttt{Recoil}, et un paramètre de type \emph{Trigger} nommé \texttt{Fire}. À chaque tir, le script appelle \texttt{animator.SetTrigger("Fire")}, ce qui fait passer l'Animator dans l'état \texttt{Recoil}, puis il revient tout seul à \texttt{Idle}.
-\end{itemize}
-Ces effets sont regroupés dans le script \texttt{WeaponEffects}, pour ne pas alourdir le \texttt{PlayerController}, qui se contente de l'appeler à chaque tir.
-
-\subsection{Étape H3 : les personnages et leurs animations}
-\paragraph{Santa, en vue à la troisième personne.} Le joueur est maintenant le Père Noël du pack de Noël. En vue à la première personne, on ne verrait jamais son propre personnage ; je suis donc passé en vue à la troisième personne (TPS), que le sujet autorise (\og fps ou tps \fg{}). La caméra est placée au-dessus de l'épaule droite de Santa, le sucre d'orge est dans sa main droite, et le cadeau porté devant lui.
-
-Ce changement de vue a eu deux conséquences sur le code :
-\begin{itemize}
-  \item \textbf{le tir touchait Santa.} La caméra étant derrière lui, le rayon partait à travers son propre collider. J'ai placé tout le joueur sur une couche (\emph{layer}) \texttt{Player}, et le raycast reçoit maintenant un \texttt{LayerMask} qui exclut cette couche : \texttt{Physics.Raycast(ray, out hit, 1000f, shootMask)}. C'est la version du cours avec une distance maximale, à laquelle on ajoute les couches que le rayon a le droit de toucher ;
-  \item \textbf{la distance de ramassage} des cadeaux était mesurée depuis la caméra, qui est maintenant 3 m derrière Santa. Elle est désormais mesurée depuis Santa.
-\end{itemize}
-
-\paragraph{Les animations de Santa.} Le pack fournit Santa avec 27 animations. Un \emph{Animator Controller} contient deux états, \texttt{Idle} et \texttt{Run}, et un paramètre \texttt{Speed}. Les transitions passent de \texttt{Idle} à \texttt{Run} quand \texttt{Speed} dépasse 0,1, et reviennent quand il redescend. À chaque frame, le \texttt{PlayerController} envoie la valeur des touches de déplacement :
-\begin{lstlisting}
-animator.SetFloat("Speed", zqsdValue.magnitude);
-\end{lstlisting}
-L'option \emph{Apply Root Motion} est désactivée : c'est le \emph{CharacterController} qui déplace Santa, pas l'animation.
-
-\paragraph{Les monstres.} Les capsules ont été remplacées par les quatre personnages du pack Halloween : le tueur et la sorcière pour les chasseurs, deux fantômes pour les voleurs. Cela donne quatre prefabs, et le spawner tire maintenant au hasard entre deux formes de chasseurs et deux formes de voleurs. Le modèle est un enfant du prefab, sans collider : le collider, le \texttt{NavMeshAgent} et les scripts restent sur la racine, donc aucun script n'a eu besoin de changer.
-
-Ces personnages n'ont aucune animation, mais ils sont, comme Santa, de type \emph{Humanoid}. Unity peut donc leur appliquer les animations de Santa : c'est le \emph{reciblage} (retargeting) d'animations entre humanoïdes. Les chasseurs jouent l'animation de marche de Santa, et les voleurs, plus rapides, son animation de course.
-
-\paragraph{Lisibilité la nuit.} La nuit, le tueur et la sorcière, habillés de noir, n'étaient que des silhouettes. Une première idée, rendre leur matériau émissif, ne suffisait pas : un vêtement noir qui émet sa propre couleur reste noir. J'ai donc ajouté à chaque monstre une \emph{Point Light}, une petite lumière qui l'éclaire de près : rouge-orangé pour les chasseurs, bleu-vert pour les voleurs. Les monstres restent visibles, et le joueur reconnaît de loin le type de monstre qui arrive. Le matériau des monstres est une copie de celui du pack, car l'original est partagé avec tout le décor Halloween.
-
-\subsection{Étape H4 : l'ambiance visuelle}
-Pour finir, j'ai ajouté plusieurs détails qui renforcent l'alternance entre Noël et Halloween :
-\begin{itemize}
-  \item \textbf{de la neige qui tombe le jour} : un \emph{Particle System} en forme de grande boîte au-dessus du village. Elle fait partie des décorations de jour du \texttt{DayNightManager}, donc elle s'arrête toute seule la nuit, sans code supplémentaire ;
-  \item \textbf{des nuages de fumée} : quand un monstre meurt, quand les monstres restants disparaissent au lever du jour, et quand les tas de neige se transforment en citrouilles. C'est le même principe que les impacts du tir : un prefab de particules instancié à la bonne position, puis détruit au bout de 3 secondes ;
-\end{itemize}
+\subsection{Étapes H3 et H4 : les personnages et l'ambiance}
+Santa remplace la capsule, en vue à la troisième personne. Le rayon partant de derrière lui le touchait : tout le joueur est sur une couche exclue du raycast, et la distance de ramassage est mesurée depuis Santa. Il passe de l'attente à la course avec \texttt{animator.SetFloat("Speed", zqsdValue.magnitude)}, mais c'est le \texttt{CharacterController} qui le déplace. Les quatre monstres du pack Halloween n'ont pas d'animation : leur squelette \emph{Humanoid} réutilise celles de Santa, marche ou course, et une petite lumière les distingue la nuit. De la neige tombe le jour. Un nuage de fumée, le même prefab que les impacts, marque une mort, l'aube, ou le passage de la neige aux citrouilles.
 
 \subsection{Rééquilibrage de la difficulté}
-En jouant la version complète, le jeu s'est révélé beaucoup trop facile. En relisant le code, j'ai identifié trois causes : le canon réglait tout (il tuait un groupe entier toutes les 5 secondes, sans contrainte), les monstres étaient trop lents pour menacer le joueur, et ils arrivaient toujours des quatre mêmes coins, ce qui les rendait prévisibles. Plutôt que de simplement augmenter les nombres, j'ai d'abord ajouté des mécaniques qui créent des choix pour le joueur :
+En jouant la version complète, le jeu s'est révélé beaucoup trop facile. En relisant le code, on a identifié trois causes : le canon réglait tout (il tuait un groupe entier toutes les 5 secondes, sans contrainte), les monstres étaient trop lents pour menacer le joueur, et ils arrivaient toujours des quatre mêmes coins, ce qui les rendait prévisibles. Plutôt que de simplement augmenter les nombres, on a d'abord ajouté des mécaniques qui créent des choix pour le joueur :
 \begin{itemize}
   \item \textbf{les citrouilles deviennent les munitions du canon.} Le canon n'est plus illimité : le joueur commence chaque nuit avec 2 charges. Pour en gagner, il doit aller jusqu'à une citrouille allumée du village, la viser et appuyer sur E. La citrouille disparaît (\texttt{SetActive(false)}) et réapparaît la nuit suivante, puisque le \texttt{DayNightManager} réactive les décorations de nuit. La nuit pose donc un dilemme : rester protéger le sapin, ou traverser le village, exposé aux chasseurs, pour récupérer des munitions. Le décor sert maintenant au jeu ;
   \item \textbf{le Krampus}, le démon de Noël des légendes alpines, apparaît une fois par nuit à partir de 5 cadeaux sous le sapin. C'est un chasseur deux fois plus grand, plus lent, avec 20 PV et 3 dégâts par coup, entouré d'une aura rouge. Il n'a pas de script à lui : c'est un prefab de chasseur avec d'autres réglages. Le \texttt{Spawner} le fait apparaître en premier, et un booléen \texttt{bossSpawned}, remis à \texttt{false} dans \texttt{OnEnable()} à chaque nuit, empêche qu'il y en ait deux ;
   \item \textbf{porter un cadeau ralentit Santa} à 80\,\% de sa vitesse. Le jour devient plus tendu à l'approche de la nuit.
 \end{itemize}
-J'ai ensuite rendu les monstres plus menaçants : ils sont plus rapides (de 3 à 4,2 selon le type, alors que le joueur court à 5), plus nombreux, et ils apparaissent depuis 12 points répartis tout autour du village (le cimetière, les deux forêts et l'entrée du village au sud) au lieu de 4. Le \texttt{Spawner} a aussi été corrigé : quand le point tiré était trop proche du joueur, il abandonnait l'apparition ; il essaie maintenant d'autres points avec une boucle \texttt{for}, et s'arrête au premier point valide avec \texttt{break}. Une première version, trop difficile, a été adoucie après plusieurs parties de test.
+On a ensuite rendu les monstres plus menaçants : ils sont plus rapides (de 3 à 4,2 selon le type, alors que le joueur court à 5), plus nombreux, et ils apparaissent depuis 12 points répartis tout autour du village (le cimetière, les deux forêts et l'entrée du village au sud) au lieu de 4. Le \texttt{Spawner} a aussi été corrigé : quand le point tiré était trop proche du joueur, il abandonnait l'apparition ; il essaie maintenant d'autres points avec une boucle \texttt{for}, et s'arrête au premier point valide avec \texttt{break}. Une première version, trop difficile, a été adoucie après plusieurs parties de test.
 
 \subsection{L'expérience de jeu (UX)}
-En jouant, plusieurs informations importantes passaient inaperçues dans le feu de l'action. J'ai donc retravaillé l'interface :
+En jouant, plusieurs informations importantes passaient inaperçues dans le feu de l'action. On a donc retravaillé l'interface :
 \begin{itemize}
   \item \textbf{une barre de vie} remplace le chiffre \og Vie : 10 \fg{}, peu lisible en pleine action. C'est un composant \emph{Slider} de l'UI (vu dans le cours V), non interactif, que le HUD remplit à chaque frame avec \texttt{healthBar.value = playerHealth.GetHp()} ;
   \item \textbf{un flash rouge} : un monstre pouvait frapper le joueur dans le dos sans qu'il s'en rende compte. Une image rouge couvre tout l'écran, transparente au repos. Quand la vie baisse par rapport à la frame précédente, le HUD la rend visible d'un coup, puis elle redevient transparente petit à petit avec \texttt{Mathf.MoveTowards} ;
   \item \textbf{une transition jour/nuit en douceur} : le changement de lumière était brutal. Pendant les 4 dernières secondes de chaque phase, la couleur et l'intensité du soleil et la lumière ambiante passent progressivement à celles de la phase suivante avec \texttt{Color.Lerp} et \texttt{Mathf.Lerp}. Un grand texte au centre de l'écran affiche un compte à rebours (\og La nuit tombe dans 3\ldots \fg{}), puis le titre de la nouvelle phase.
 \end{itemize}
-J'ai aussi modifié la récompense du défi pour donner au joueur un moyen de regagner de la vie, qui n'existait pas : s'il a toute sa vie, il gagne le cadeau doré ; s'il est blessé, il récupère à la place 30\,\% de sa vie maximale.
-
-\subsection{Nettoyage du code}
-Après ces changements, une partie du code ne servait plus. Je l'ai supprimée pour que le projet ne contienne que ce qui est réellement utilisé :
-\begin{itemize}
-  \item \textbf{le ralentissement des créatures} : depuis l'étape D, le clic droit est un canon la nuit, et les créatures n'existent que la nuit. Il ne pouvait donc plus les toucher. Le ralentissement ne s'applique plus qu'aux cadeaux farceurs, le jour ;
-  \item \textbf{l'action de saut} du code fourni, activée mais jamais lue ;
-  \item \textbf{la classe C\# générée} à partir du fichier \emph{Input Actions}, inutile puisque les actions passent par des \texttt{InputActionReference} (j'ai décoché \emph{Generate C\# Class} dans les réglages d'import du fichier) ;
-  \item \textbf{les fichiers du tutoriel} fournis avec le modèle de projet Unity (\texttt{TutorialInfo}, \texttt{Readme}) ;
-  \item une ligne \texttt{using} qui n'était pas utilisée.
-\end{itemize}
-
-
-% =====================================================================
-\section{Notions du cours utilisées}
-\begin{table}[H]
-\centering
-\begin{tabular}{lp{11cm}}
-\toprule
-\textbf{Notion} & \textbf{Utilisation dans le projet} \\
-\midrule
-Raycast & Tir, ralentisseur, canon (point d'impact), ramassage des cadeaux et des citrouilles, vérification qu'aucun mur ne sépare un chasseur du joueur \\
-Prefabs & Le joueur, les 5 monstres (2 chasseurs, 2 voleurs, le Krampus), les cadeaux, la maison, les effets de particules \\
-Navigation & NavMesh calculée sur le village ; trois comportements : poursuivre le joueur (chasseurs), aller au sapin puis fuir (voleurs), fuir le joueur (cadeaux) \\
-UI & Viseur, barre de vie (Slider), textes du HUD, flash rouge, annonces de phase, écrans Game Over et Victoire avec un bouton \\
-Capacité spéciale & Ralentisseur le jour, canon à explosion de zone la nuit \\
-Défi & Défi de nuit tiré au hasard, récompensé par un cadeau doré ou par de la vie \\
-Import d'assets 3D & \emph{Christmas Pack FREE} (ithappy) et \emph{Poly Halloween Pack} (polyperfect), Unity Asset Store \\
-Bonus & Animations (Santa, monstres reciblés, recul de l'arme), particules (étincelles, explosion, fumée, neige), lumières (aura des monstres) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-% =====================================================================
-\section{Documentation du code}
-
-Cette partie décrit la version actuelle de chaque script : son rôle, ses paramètres réglables dans l'Inspector, son fonctionnement, et ses limites ou problèmes connus. Les limites listées sont des points que j'ai identifiés en relisant le code. Ils ne bloquent pas le jeu dans son état actuel, mais ce sont des pistes d'amélioration.
-
-\subsection{Vue d'ensemble : comment les scripts communiquent}
-
-Les scripts se retrouvent entre eux de trois façons, toutes vues en cours :
-\begin{itemize}
-  \item \textbf{par Tag} : \texttt{GameObject.FindWithTag("Player")} et \texttt{FindGameObjectsWithTag("Creature")} ;
-  \item \textbf{par nom} : \texttt{GameObject.Find("ChallengeManager")} et \texttt{GameObject.Find("GiftZone")} ;
-  \item \textbf{par référence glissée dans l'Inspector} : le HUD, le \texttt{DayNightManager}, les spawners et le joueur reçoivent directement les objets de la scène dont ils ont besoin.
-\end{itemize}
-
-\begin{table}[H]
-\centering
-\small
-\begin{tabular}{lll}
-\toprule
-\textbf{Script appelant} & \textbf{Méthode appelée} & \textbf{Quand} \\
-\midrule
-\texttt{PlayerController} & \texttt{Health.TakeDamage()} & tir ou canon qui touche \\
-\texttt{PlayerController} & \texttt{Gift.Slow()} & ralentisseur (clic droit le jour) \\
-\texttt{PlayerController} & \texttt{ChristmasTree.AddGift()} & dépôt d'un cadeau (E) \\
-\texttt{PlayerController} & \texttt{ChallengeManager.CannonKill()} & créature tuée au canon \\
-\texttt{Creature} & \texttt{Health.TakeDamage()} du joueur & créature assez proche \\
-\texttt{Thief} & \texttt{ChristmasTree.RemoveGift()} & voleur entré dans la zone du sapin \\
-\texttt{Thief} & \texttt{ChallengeManager.GiftLost()} & voleur échappé avec un cadeau \\
-\texttt{ChristmasTree} & \texttt{Thief.ReachTree()} & voleur entré dans la zone (trigger) \\
-\texttt{Health} & \texttt{ChallengeManager.ThiefKilled()} & mort d'un voleur \\
-\texttt{DayNightManager} & \texttt{GiftSpawner.SpawnGifts()}, \texttt{SpawnGoldenGift()} & lever du jour \\
-\texttt{DayNightManager} & \texttt{ChallengeManager.StartChallenge()}, \texttt{EndChallenge()} & tombée de la nuit, lever du jour \\
-\texttt{HUD} & \texttt{GetHp()}, \texttt{GetScore()}, \texttt{GetChallengeText()}, \ldots & à chaque frame \\
-Bouton \og Rejouer \fg{} & \texttt{HUD.Restart()} & clic (événement OnClick) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Dépendances à respecter dans l'éditeur.} Le code suppose que :
-\begin{itemize}
-  \item la racine du prefab \texttt{Player} a le Tag \texttt{Player} ;
-  \item le prefab \texttt{Creature} a le Tag \texttt{Creature} ;
-  \item l'objet qui porte le \texttt{ChallengeManager} s'appelle exactement \texttt{ChallengeManager}.
-\end{itemize}
-Si l'un de ces noms change, le jeu ne plante pas, mais la fonctionnalité concernée s'arrête sans message d'erreur. Par exemple, si l'objet est renommé, les défis ne progressent plus.
-
-% ---------------------------------------------------------------------
-\subsection{PlayerController}
-
-\textbf{Rôle.} Ce script est fourni par le professeur et je l'ai complété. Il gère le déplacement (ZQSD), la caméra (souris), la gravité, le tir et la capacité spéciale.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{llp{8cm}}
-\toprule
-\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
-\midrule
-\texttt{damage} & 1 & points de vie retirés par un tir \\
-\texttt{slowDuration} & 3 s & durée du ralentissement \\
-\texttt{cannonDamage} & 5 & dégâts du canon (tue toute créature) \\
-\texttt{cannonCooldown} & 5 s & temps de recharge du canon \\
-\texttt{cannonRadius} & 4 m & rayon de l'explosion \\
-\texttt{chargesPerNight} & 2 & charges de canon au début de chaque nuit \\
-\texttt{carrySpeedFactor} & 0,8 & vitesse de Santa quand il porte un cadeau \\
-\texttt{fire}, \texttt{slow} & -- & actions de l'Input System (clic gauche, clic droit) \\
-\texttt{groundCheckMask} & Ground & layer considéré comme du sol \\
-\texttt{shootMask} & tout sauf Player & couches que le tir peut toucher \\
-\texttt{animator} & Animator de Santa & animations Idle / Run \\
-\texttt{pickRange} & 3 m & distance de ramassage, mesurée depuis Santa \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Fonctionnement.}
-\begin{itemize}
-  \item Dans \texttt{Start()}, les actions sont activées, et les fonctions \texttt{FirePressed} et \texttt{SlowPressed} sont abonnées aux événements \texttt{performed}. Elles sont désabonnées dans \texttt{OnDestroy()}.
-  \item \texttt{ShootRay(out RaycastHit hit)} lance un rayon depuis le centre de l'écran et renvoie \texttt{true} si un objet est touché. Le tir et la capacité utilisent tous les deux cette fonction.
-  \item Le tir cherche un composant \texttt{Health} sur l'objet touché.
-  \item Le clic droit appelle \texttt{SpecialPressed()}. Le jour, elle appelle \texttt{SlowTarget()}, qui ralentit le cadeau (\texttt{Gift}) touché. La nuit, elle appelle \texttt{FireCannon()} : si le canon est rechargé, elle fait exploser une sphère de rayon \texttt{cannonRadius} au point d'impact avec \texttt{Physics.OverlapSphere}, et inflige \texttt{cannonDamage} à chaque \texttt{Health} touché, sauf au joueur.
-  \item \texttt{ShootRay} ne touche que les couches de \texttt{shootMask}, c'est-à-dire tout sauf la couche \texttt{Player}, pour que le rayon parti de la caméra (derrière Santa) ne touche pas Santa lui-même.
-  \item À chaque frame, \texttt{Update()} envoie \texttt{zqsdValue.magnitude} au paramètre \texttt{Speed} de l'Animator de Santa, qui choisit entre l'animation \texttt{Idle} et l'animation \texttt{Run}.
-  \item \texttt{ShootRay} affiche aussi le rayon en rouge dans la vue Scene avec \texttt{Debug.DrawRay}, pour le débogage. \texttt{GetShotEnd} donne le point d'arrivée du trait (l'objet touché, ou 100 m devant), et chaque tir appelle ensuite le script \texttt{WeaponEffects}.
-  \item Le canon consomme une charge (\texttt{cannonCharges}). Sans charge, il ne tire pas. \texttt{ResetCannonCharges()}, appelée par le \texttt{DayNightManager} à la tombée de la nuit, redonne les charges de départ.
-  \item Quand le joueur porte un cadeau, la vitesse de déplacement est multipliée par \texttt{carrySpeedFactor}.
-  \item La touche E (action \texttt{Interact}) appelle \texttt{InteractPressed}, qui interagit avec le sapin quand le joueur est dans sa zone. La référence au sapin (\texttt{tree}) est glissée dans l'Inspector.
-  \item Si le jeu est en pause (\texttt{Time.timeScale == 0}, pendant le Game Over), \texttt{FirePressed} et \texttt{SlowPressed} s'arrêtent tout de suite.
-\end{itemize}
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{Le rayon n'a pas de portée maximale ni de filtre.} \texttt{Physics.Raycast(ray, out hit)} touche le premier collider sur une distance infinie. Ce n'est pas gênant ici, car l'arène est fermée et les murs arrêtent le rayon. Le cours montre une version avec une distance maximale (\texttt{\_maxDist}), qu'on pourrait ajouter.
-  \item \textbf{Le collider doit être sur l'objet qui porte le script.} On utilise \texttt{hit.collider.GetComponent<Health>()}. Si on remplace la capsule par un modèle 3D dont le collider est sur un objet enfant, le tir ne trouvera plus le \texttt{Health}. Il faudra faire attention à l'étape 8.
-  \item \textbf{L'explosion traverse les murs.} \texttt{OverlapSphere} prend tout ce qui est dans la sphère, même une créature cachée derrière un obstacle. Un raycast entre le point d'impact et chaque créature corrigerait ce problème, comme pour l'attaque des créatures.
-  \item \textbf{Un tir dans le ciel consomme la recharge.} Si le rayon ne touche rien, il n'y a pas d'explosion, mais il faut quand même attendre 5 secondes.
-  \item \textbf{Le nom de l'action est resté \texttt{slow}.} L'action du clic droit sert maintenant aux deux armes, mais elle n'a pas été renommée, pour ne pas perdre la référence dans l'Inspector.
-  \item \textbf{La caméra peut traverser les murs.} En vue TPS, elle est 3 m derrière Santa : quand il est dos à une maison, la caméra passe dans le mur. Un raycast entre Santa et la caméra permettrait de la rapprocher dans ce cas.
-  \item \textbf{Santa court toujours vers l'avant.} Il n'y a qu'une animation de course, même quand le joueur se déplace en arrière ou sur le côté. Un \emph{Blend Tree} avec plusieurs directions corrigerait ce problème.
-  \item \textbf{La sensibilité de la souris dépend du nombre d'images par seconde.} Le déplacement de la souris (\texttt{delta}) correspond déjà au mouvement depuis la dernière frame. Le multiplier en plus par \texttt{Time.deltaTime} fait que la caméra tourne moins vite quand le jeu tourne plus vite. C'est un détail du code fourni que je n'ai pas modifié.
-  \item \textbf{Pas de saut.} Le code fourni activait une action \texttt{jump} sans jamais la lire ; je l'ai retirée, car le jeu n'a pas besoin de saut.
-\end{itemize}
-
-% ---------------------------------------------------------------------
-\subsection{Health}
-
-\textbf{Rôle.} Gérer les points de vie d'un objet. Le même script est utilisé pour le joueur, les créatures et la cible de test.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{llp{6cm}}
-\toprule
-\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
-\midrule
-\texttt{maxHp} & 3 (créature), 10 (joueur) & points de vie au départ \\
-\texttt{destroyOnDeath} & oui (créature), non (joueur) & détruire l'objet à 0 PV \\
-\texttt{deathEffect} & SmokePuff (monstres) & effet créé à la mort \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Fonctionnement.}
-\begin{itemize}
-  \item \texttt{TakeDamage(int amount)} retire des PV. Si l'objet est déjà à 0, le coup est ignoré, car \texttt{Destroy} n'agit qu'à la fin de la frame et un deuxième coup pourrait arriver avant.
-  \item À 0 PV, si l'objet a aussi un script \texttt{Thief}, \texttt{Health} prévient le \texttt{ChallengeManager} (défi \og tue X voleurs \fg{}).
-  \item Quand l'objet est détruit, \texttt{Health} crée d'abord l'effet \texttt{deathEffect} (un nuage de fumée) à sa position, puis programme la destruction de cet effet au bout de 3 secondes.
-  \item \texttt{GetMaxHp()} donne la vie maximale (pour la barre de vie), et \texttt{Heal(int amount)} rend des PV sans dépasser ce maximum, grâce à \texttt{Mathf.Min}.
-  \item Le joueur n'est pas détruit (\texttt{destroyOnDeath} décoché), sinon sa caméra disparaîtrait. C'est le HUD qui détecte sa mort avec \texttt{GetHp()}.
-\end{itemize}
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{\texttt{Health} connaît les défis.} À la mort, il vérifie si l'objet est un voleur pour prévenir le \texttt{ChallengeManager}. Un script de points de vie ne devrait normalement pas savoir qu'il existe des voleurs et des défis. Ce choix garde le code court, mais si on ajoute d'autres façons de mourir ou d'autres défis, ce script devra encore grossir.
-  \item \textbf{Recherche par nom.} \texttt{GameObject.Find("ChallengeManager")} parcourt la scène à chaque mort. C'est acceptable avec 10 créatures au maximum, mais c'est fragile si l'objet est renommé (voir la vue d'ensemble).
-  \item \textbf{Les PV sont initialisés dans \texttt{Start()}.} Une créature touchée dans la même frame que son apparition, avant son \texttt{Start()}, aurait encore 0 PV et ignorerait le coup. C'est très peu probable en jeu. L'initialisation dans \texttt{Awake()}, qui est appelée plus tôt, éviterait ce cas.
-  \item \textbf{Le soin est instantané.} \texttt{Heal()} ajoute les PV d'un coup ; une remontée progressive de la barre serait plus agréable à voir.
-\end{itemize}
-
-% ---------------------------------------------------------------------
-\subsection{Creature}
-
-\textbf{Rôle.} Le chasseur : poursuivre le joueur et l'attaquer quand il est proche.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{llp{8cm}}
-\toprule
-\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
-\midrule
-\texttt{damage} & 1 & PV retirés au joueur par coup \\
-\texttt{attackRange} & 2 m & distance à partir de laquelle elle frappe \\
-\texttt{attackCooldown} & 1 s & temps minimum entre deux coups \\
-Speed (NavMeshAgent) & 2 & vitesse normale \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Fonctionnement.}
-\begin{itemize}
-  \item Dans \texttt{Start()}, la créature trouve le joueur par son Tag et vérifie qu'elle est bien sur la NavMesh.
-  \item Dans \texttt{Update()}, elle :
-  \begin{enumerate}
-    \item donne la position du joueur à l'agent avec \texttt{SetDestination} ;
-    \item frappe si trois conditions sont réunies : la distance au \emph{centre} du joueur est inférieure à \texttt{attackRange}, \texttt{Time.time} a dépassé \texttt{nextAttackTime}, et \texttt{CanSeePlayer()} confirme qu'aucun obstacle ne les sépare.
-  \end{enumerate}
-  \item \texttt{CanSeePlayer()} lance un rayon de la créature vers le joueur, sur une longueur \texttt{attackRange}. Elle renvoie \texttt{true} seulement si le premier objet touché est le joueur.
-\end{itemize}
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{Une autre créature peut bloquer l'attaque.} Le rayon de \texttt{CanSeePlayer()} s'arrête sur le premier collider. Si une créature se trouve entre le joueur et une autre créature, celle de derrière ne frappe pas. En pratique, ça limite un peu les dégâts quand le joueur est encerclé, ce qui n'est pas gênant.
-  \item \textbf{Le \og centre \fg{} du joueur est codé en dur.} \texttt{player.transform.position + Vector3.up} suppose que le joueur mesure 2 m et que son pivot est à ses pieds. Si on change le modèle du joueur, il faudra adapter cette valeur.
-  \item \textbf{Le chemin est recalculé à chaque frame.} \texttt{SetDestination} est appelé environ 60 fois par seconde et par créature, alors que le joueur bouge peu entre deux frames. Avec 10 créatures, ça reste léger, mais ça ne passerait pas à l'échelle avec beaucoup plus de créatures. On pourrait le recalculer seulement quelques fois par seconde.
-  \item \textbf{Une créature hors de la NavMesh reste bloquée.} Elle se désactive, mais elle n'est pas détruite. Elle compte donc toujours dans la limite des 10 créatures du spawner.
-  \item \textbf{La créature peut entrer dans le joueur.} La distance d'arrêt de l'agent (\emph{Stopping Distance}) est à 0. L'agent essaie donc d'atteindre exactement la position du joueur. Mettre une distance d'arrêt proche de la portée d'attaque serait plus propre.
-\end{itemize}
-
-% ---------------------------------------------------------------------
-\subsection{Spawner}
-
-\textbf{Rôle.} Faire apparaître des créatures régulièrement la nuit, loin du joueur, en mélangeant chasseurs et voleurs.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{llp{7cm}}
-\toprule
-\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
-\midrule
-\texttt{creaturePrefabs} & Creature & chasseurs possibles, un est tiré au hasard \\
-\texttt{thiefPrefabs} & Thief & voleurs possibles \\
-\texttt{spawnPoints} & SP1 à SP12 & points d'apparition autour du village \\
-\texttt{minDistance} & 14 m & distance minimale au joueur \\
-\texttt{bossPrefab}, \texttt{bossMinGifts} & Krampus, 5 & le boss et le nombre de cadeaux à partir duquel il apparaît \\
-\texttt{tree} & GiftZone & pour connaître le nombre de cadeaux $n$ \\
-\texttt{baseMaxCreatures} & 5 & créatures maximum : $5 + n$ \\
-\texttt{baseInterval}, \texttt{intervalPerGift}, \texttt{minInterval} & 3 ; 0,15 ; 1,2 & intervalle : $3 - 0{,}15\,n$, minimum 1,2 s \\
-\texttt{baseThiefChance}, \texttt{thiefChancePerGift}, \texttt{maxThiefChance} & 0,2 ; 0,05 ; 0,8 & part de voleurs : $0{,}2 + 0{,}05\,n$, maximum 0,8 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Fonctionnement.} À intervalles réguliers (donnés par \texttt{GetInterval()}) :
-\begin{enumerate}
-  \item le spawner compte les créatures en vie avec \texttt{FindGameObjectsWithTag("Creature").Length} et s'arrête s'il y en a trop ;
-  \item il tire des points au hasard, au plus autant de fois qu'il y a de points, jusqu'à en trouver un assez loin du joueur. S'il n'en trouve aucun, il réessaie au tour suivant ;
-  \item s'il y a assez de cadeaux et que le Krampus n'est pas encore apparu cette nuit, c'est lui qui apparaît ;
-  \item sinon, il choisit le type de créature (voleur ou chasseur), puis instancie un prefab de ce type, tiré au hasard, sur ce point.
-\end{enumerate}
-
-\paragraph{La probabilité de voleur.} À chaque apparition, \texttt{Random.value} tire un nombre au hasard entre 0 et 1. Si ce nombre est inférieur à la probabilité de voleur (calculée par \texttt{GetThiefChance()}), la créature est un voleur ; sinon, c'est un chasseur. Avant l'étape F, cette probabilité était un réglage fixe \texttt{thiefChance}, affiché comme un curseur grâce à \texttt{[Range(0f, 1f)]}. Pour 10 créatures apparues dans une nuit, on obtient en moyenne :
-
-\begin{table}[H]
-\centering
-\begin{tabular}{cccp{7cm}}
-\toprule
-\texttt{thiefChance} & \textbf{Voleurs} & \textbf{Chasseurs} & \textbf{Effet en jeu} \\
-\midrule
-0 & 0 & 10 & que des chasseurs : les cadeaux ne risquent rien, il faut seulement survivre \\
-0,3 & 3 & 7 & surtout du combat, avec quelques voleurs à surveiller \\
-0,5 & 5 & 5 & il faut sans cesse choisir entre se défendre et protéger le sapin \\
-0,7 & 7 & 3 & peu de danger pour le joueur, mais les cadeaux partent vite \\
-1 & 10 & 0 & que des voleurs : le joueur ne peut pas mourir, mais doit courir après tout le monde \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Ce ne sont que des moyennes : avec 0,3, une nuit peut compter un seul voleur et la suivante cinq. Plus la valeur est haute, plus les cadeaux sont menacés, et moins le joueur l'est. C'est pour cette raison que l'étape F fait augmenter ce réglage avec le nombre de cadeaux sous le sapin : au début de la partie, la nuit est surtout un combat ; près de la victoire, elle devient une course pour protéger les cadeaux.
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{Le tirage au hasard peut retomber sur le même point.} La boucle tire des points au hasard au lieu de les parcourir dans l'ordre ; elle peut donc, rarement, ne pas trouver de point valide alors qu'il en existe un. Le monstre apparaît alors au tour suivant.
-  \item \textbf{Une créature peut apparaître sous les yeux du joueur.} Seule la distance est vérifiée, pas le champ de vision. À 15 m, le joueur peut voir la créature apparaître.
-  \item \textbf{Une erreur si les tableaux sont vides.} Si \texttt{spawnPoints} ou \texttt{creaturePrefabs} est vide dans l'Inspector, \texttt{Random.Range(0, 0)} renvoie 0 et l'accès à la case 0 provoque une erreur à chaque tentative. C'est la même chose pour \texttt{thiefPrefabs} dès qu'un voleur est tiré. Une vérification de \texttt{Length} au démarrage éviterait ce cas.
-  \item \textbf{La difficulté ne dépend que des cadeaux.} Un joueur qui stagne longtemps à peu de cadeaux aura toujours des nuits faciles. On pourrait aussi tenir compte du numéro de la nuit.
-  \item \textbf{\texttt{OnEnable()} affiche la difficulté} au moment où le spawner est activé. C'est pratique pour équilibrer le jeu, mais ce message n'est pas visible pour le joueur.
-\end{itemize}
-
-% ---------------------------------------------------------------------
-\subsection{ChallengeManager}
-
-\textbf{Rôle.} Tirer le défi de la nuit, suivre sa progression, dire au lever du jour s'il est réussi, et compter les défis réussis.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{llp{7cm}}
-\toprule
-\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
-\midrule
-\texttt{minThieves}, \texttt{maxThieves} & 2 et 3 & objectif du défi \og tue X voleurs \fg{} \\
-\texttt{minCannonKills}, \texttt{maxCannonKills} & 3 et 5 & objectif du défi \og tue X créatures au canon \fg{} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Fonctionnement.}
-\begin{itemize}
-  \item Le défi est décrit par quelques variables : \texttt{challengeType} (0, 1 ou 2), \texttt{target} et \texttt{progress} pour les objectifs chiffrés, et trois booléens : \texttt{active} (un défi est en cours), \texttt{succeeded} et \texttt{failed}.
-  \item \texttt{StartChallenge()}, appelée à la tombée de la nuit, remet tout à zéro et tire le type et l'objectif avec \texttt{Random.Range}. On écrit \texttt{max + 1}, car la borne haute de \texttt{Random.Range} sur des entiers est exclue.
-  \item \texttt{ThiefKilled()}, \texttt{CannonKill()} et \texttt{GiftLost()} sont appelées par les autres scripts. Chacune ne fait quelque chose que si un défi est actif et s'il est du bon type. Les deux premières font avancer \texttt{progress} ; la troisième met \texttt{failed} à vrai.
-  \item \texttt{EndChallenge()}, appelée au lever du jour, termine le défi et renvoie \texttt{true} s'il est réussi. Le défi \og aucun cadeau perdu \fg{} n'est jugé qu'à ce moment-là, puisqu'on ne peut savoir qu'à la fin de la nuit qu'aucun voleur ne s'est échappé.
-  \item \texttt{GetChallengeText()} construit le texte du HUD : le défi en cours la nuit, et le résultat de la nuit précédente le jour (cadeau doré ou vie récupérée, selon ce que \texttt{SetReward()} a enregistré). \texttt{GetScore()} renvoie le nombre de défis réussis.
-  \item Pour le canon, le \texttt{PlayerController} ne compte que les créatures qui avaient encore des PV avant l'explosion et n'en ont plus après. Une créature déjà morte n'est donc pas comptée deux fois.
-\end{itemize}
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{Les types de défi sont des nombres.} \texttt{0}, \texttt{1} et \texttt{2} ne sont pas parlants dans le code. Un \texttt{switch} (vu en cours) ou une énumération rendrait le code plus lisible, surtout si on ajoute d'autres défis.
-  \item \textbf{Le même défi peut revenir plusieurs nuits de suite}, puisque le tirage ne tient pas compte du défi précédent.
-  \item \textbf{Le défi \og tue X voleurs \fg{} dépend du hasard.} Avec peu de cadeaux sous le sapin, il y a seulement 20\,\% de voleurs. Une nuit peut donc ne pas en contenir assez pour réussir le défi.
-  \item \textbf{Un défi raté n'a pas de conséquence.} On perd seulement la récompense. Comme c'est aussi le seul moyen de regagner de la vie, le défi reste malgré tout important.
-  \item \textbf{Le gestionnaire est trouvé par son nom} par \texttt{Health} et \texttt{Thief}. Si l'objet \texttt{ChallengeManager} est renommé, les défis ne progressent plus, sans message d'erreur.
-\end{itemize}
-
-% ---------------------------------------------------------------------
-\subsection{DayNightManager}
-
-\textbf{Rôle.} Alterner le jour (Noël) et la nuit (Halloween), et changer l'ambiance de la scène en conséquence.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{llp{6cm}}
-\toprule
-\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
-\midrule
-\texttt{dayDuration}, \texttt{nightDuration} & 60 s & durée de chaque phase \\
-\texttt{transitionDuration} & 4 s & durée du fondu de lumière avant chaque changement \\
-\texttt{healPercent} & 0,3 & vie rendue si le défi est réussi et que le joueur est blessé \\
-\texttt{sun} & Directional Light & lumière modifiée selon la phase \\
-\texttt{dayColor}, \texttt{nightColor} & blanc chaud, bleu & couleur du soleil \\
-\texttt{dayIntensity}, \texttt{nightIntensity} & 1 et 0,3 & intensité du soleil \\
-\texttt{daySkybox}, \texttt{nightSkybox} & Skybox\_8, M\_Skybox\_Night & ciel de chaque phase \\
-\texttt{nightVolume} & NightVolume & post-traitement de nuit \\
-\texttt{dayDecorations}, \texttt{nightDecorations} & tas de neige et bonshommes ; citrouilles et épouvantails & décor qui change avec la phase \\
-\texttt{fogColor}, \texttt{nightAmbient} & bleu nuit, 0,4 & brouillard et lumière ambiante la nuit \\
-\texttt{spawner} & Spawner & actif uniquement la nuit \\
-\texttt{smokeEffect} & SmokePuff & fumée à l'aube et au changement de décor \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Fonctionnement.}
-\begin{itemize}
-  \item \texttt{Update()} compare \texttt{Time.time} à \texttt{phaseEndTime}. Quand la phase est terminée, il appelle \texttt{StartDay()} ou \texttt{StartNight()}.
-  \item Ces deux méthodes règlent la lumière, le ciel, le brouillard, la lumière ambiante et le volume, puis activent ou désactivent le spawner. \texttt{StartDay()} détruit aussi les créatures restantes, qu'elle retrouve par leur Tag.
-  \item \texttt{ShowDecorations(bool night)} parcourt les deux tableaux de décorations avec \texttt{foreach} : la nuit, elle active les citrouilles et les épouvantails et cache la neige et les bonshommes, et le jour elle fait l'inverse.
-  \item \texttt{SpawnSmoke()} crée un nuage de fumée à une position : sur chaque créature détruite au lever du jour, et sur chaque décoration qui change de phase. Le booléen \texttt{firstPhase} évite ce nuage au tout premier lever du jour, au lancement de la partie.
-  \item Pendant les \texttt{transitionDuration} dernières secondes d'une phase, \texttt{Update()} calcule un coefficient \texttt{t} qui va de 0 à 1, et mélange les réglages de lumière des deux phases avec \texttt{Color.Lerp} et \texttt{Mathf.Lerp}. Quand la nouvelle phase commence, la lumière est donc déjà à la bonne valeur.
-  \item Au lever du jour, si le défi est réussi, \texttt{StartDay()} regarde la vie du joueur : avec toute sa vie, il fait apparaître le cadeau doré ; sinon, il lui rend 30\,\% de sa vie maximale (arrondi au-dessus avec \texttt{Mathf.CeilToInt}). Il indique au \texttt{ChallengeManager} quelle récompense a été donnée, pour le texte du HUD.
-  \item \texttt{IsNight()}, \texttt{GetTimeLeft()} et \texttt{GetPhaseElapsed()} permettent aux autres scripts, comme le HUD, de connaître la phase et le temps restant.
-\end{itemize}
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{Le ciel change d'un coup.} La lumière passe progressivement d'une phase à l'autre, mais le skybox est remplacé instantanément au changement de phase.
-  \item \textbf{Le soleil ne bouge pas.} Seules sa couleur et son intensité changent. Faire tourner la lumière au cours de la journée donnerait des ombres qui évoluent.
-  \item \textbf{Les deux tableaux doivent correspondre.} Rien n'oblige à mettre une citrouille pour chaque tas de neige : si on en oublie une, un emplacement reste vide la nuit.
-  \item \textbf{Toutes les références doivent être remplies.} Si une case de l'Inspector est vide (le soleil, un ciel, le volume ou le spawner), le changement de phase provoque une erreur.
-  \item \textbf{Les réglages de brouillard sont partagés.} Le mode et la densité viennent de la fenêtre \emph{Lighting}, mais la couleur vient du script. Une partie du réglage est donc dans l'éditeur et l'autre dans le code.
-\end{itemize}
-
-% ---------------------------------------------------------------------
-\subsection{ChristmasTree}
-
-\textbf{Rôle.} Gérer la zone de dépôt au pied du sapin, compter les cadeaux et les afficher.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{llp{7cm}}
-\toprule
-\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
-\midrule
-\texttt{giftsToWin} & 10 & nombre de cadeaux pour gagner \\
-\texttt{giftVisuals} & 10 modèles & cadeaux affichés sous le sapin \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Fonctionnement.}
-\begin{itemize}
-  \item Le script est placé sur un objet qui a un collider en mode \emph{Is Trigger}. \texttt{OnTriggerEnter} et \texttt{OnTriggerExit} mettent à jour \texttt{playerInZone} quand l'objet qui entre ou sort a le Tag \texttt{Player}. Le \emph{CharacterController} du joueur suffit pour déclencher ces événements.
-  \item \texttt{AddGift(int value)} ajoute des cadeaux. Le paramètre permet d'ajouter 2 cadeaux d'un coup pour le cadeau doré. \texttt{RemoveGift()} en retire un et renvoie \texttt{false} s'il n'y en avait plus : elle servira aux voleurs.
-  \item \texttt{UpdateVisuals()} parcourt le tableau \texttt{giftVisuals} et n'active que les cases dont l'indice est inférieur au nombre de cadeaux.
-\end{itemize}
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{L'affichage est limité à la taille du tableau.} Au-delà de 10 cadeaux, par exemple avec un cadeau doré déposé à 9, le compteur continue de monter, mais aucun nouveau modèle n'apparaît. Comme la partie se termine à 10, ce n'est pas gênant.
-  \item \textbf{Le compteur peut dépasser l'objectif.} Avec un cadeau doré déposé à 9, on arrive à 11. La victoire se déclenche quand même, car le HUD teste \texttt{>=}.
-  \item \textbf{L'état de la zone peut être faux en cas de téléportation.} Si le joueur était déplacé directement hors de la zone (sans la traverser), \texttt{OnTriggerExit} pourrait ne pas être appelé. Le joueur ne fait que marcher dans ce jeu, donc le cas ne se présente pas.
-\end{itemize}
-
-% ---------------------------------------------------------------------
-\subsection{Gift et GiftSpawner}
-
-\textbf{Rôle.} \texttt{Gift} est le cadeau farceur, qui fuit le joueur et peut être ralenti. \texttt{GiftSpawner} les fait apparaître au début de chaque journée.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{llp{7cm}}
-\toprule
-\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
-\midrule
-\texttt{value} & 1 & cadeaux rapportés (2 pour le cadeau doré) \\
-\texttt{fleeDistance} & 8 m & distance à partir de laquelle il fuit \\
-\texttt{fleeStep} & 6 m & distance visée à chaque fuite \\
-\texttt{slowFactor} & 0,3 & vitesse pendant le ralentissement \\
-Speed (NavMeshAgent) & 3 & vitesse normale (le joueur va à 5) \\
-\texttt{giftsPerDay} (spawner) & 4 & cadeaux qui apparaissent chaque jour \\
-\texttt{speedPerGift} (spawner) & 0,2 & vitesse ajoutée par cadeau déjà sous le sapin \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Fonctionnement.}
-\begin{itemize}
-  \item \texttt{Gift} reprend la structure de \texttt{Creature} (la même vérification de la NavMesh au démarrage), mais il va à l'opposé du joueur au lieu d'aller vers lui.
-  \item Le ralentissement est stocké sous la forme d'une heure de fin (\texttt{slowEndTime}) : \texttt{Slow(durée)} la fixe à \texttt{Time.time + durée}, et \texttt{IsSlowed()} compare simplement cette heure avec \texttt{Time.time}. Pendant le ralentissement, le cadeau passe à 30\,\% de sa vitesse et devient cyan (\texttt{rend.material.color}). Si on ralentit un cadeau déjà ralenti, la durée repart de zéro.
-  \item \texttt{GiftSpawner.SpawnGifts()} est appelée par le \texttt{DayNightManager} au lever du jour. Elle instancie \texttt{giftsPerDay} cadeaux sur des points et avec des modèles tirés au hasard.
-  \item Le ramassage et le dépôt sont dans \texttt{PlayerController.InteractPressed()}. Le joueur retient la valeur du cadeau porté dans \texttt{carriedValue}, qui vaut 0 quand il a les mains vides.
-\end{itemize}
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{Les cadeaux finissent dans les coins.} Fuir en ligne droite à l'opposé du joueur pousse le cadeau contre les murs. Une fois coincé, il est plus facile à attraper : c'est presque un avantage pour le joueur, mais ce n'est pas très malin de la part du cadeau.
-  \item \textbf{La destination peut être hors de la NavMesh}, par exemple derrière un mur. L'agent va alors au point accessible le plus proche, ce qui donne parfois un cadeau qui longe un mur.
-  \item \textbf{Deux cadeaux peuvent apparaître au même endroit}, car le point est tiré au hasard à chaque fois, sans vérifier s'il est déjà pris. Les agents s'écartent ensuite tout seuls.
-  \item \textbf{Le cadeau ne fait rien quand le joueur est loin.} Il reste immobile au lieu de se promener. Un déplacement au hasard le rendrait plus vivant.
-  \item \textbf{Le cadeau porté est seulement mémorisé par sa valeur.} L'objet ramassé est détruit et remplacé par un modèle fixe devant la caméra. Le joueur voit donc toujours le même modèle, quel que soit le cadeau attrapé.
-  \item \textbf{Un seul cadeau à la fois.} Il faut faire un aller-retour au sapin pour chaque cadeau. C'est voulu, pour le rythme de la journée.
-\end{itemize}
-
-% ---------------------------------------------------------------------
-\subsection{Thief}
-
-\textbf{Rôle.} Le voleur va au sapin, prend un cadeau et s'enfuit avec.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{llp{7cm}}
-\toprule
-\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
-\midrule
-\texttt{escapeRange} & 1,5 m & distance au point de départ pour s'échapper \\
-\texttt{carriedGiftVisual} & Present\_004 & cadeau affiché dans ses mains \\
-Speed (NavMeshAgent) & 3,5 & un peu plus rapide qu'un chasseur \\
-Max Hp (Health) & 2 & plus fragile qu'un chasseur \\
-\texttt{thiefChance} (Spawner) & 0,3 & part de voleurs parmi les apparitions \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Fonctionnement.}
-\begin{itemize}
-  \item Au démarrage, le voleur retient sa position (\texttt{exitPoint}) et trouve le sapin par le nom de l'objet \texttt{GiftZone}.
-  \item Tant que \texttt{leaving} vaut \texttt{false}, il se dirige vers le sapin. Quand il entre dans la zone trigger, le \texttt{ChristmasTree} appelle \texttt{ReachTree()} : il essaie de prendre un cadeau avec \texttt{RemoveGift()}, puis passe \texttt{leaving} à \texttt{true}.
-  \item Ensuite, il se dirige vers \texttt{exitPoint}. S'il y arrive, il met \texttt{hasGift} à \texttt{false} (le cadeau est perdu) et se détruit.
-  \item \texttt{OnDestroy()} rend le cadeau au sapin si \texttt{hasGift} est encore vrai, c'est-à-dire si le voleur a été tué ou s'il a disparu au lever du jour.
-  \item Le prefab a un \emph{Rigidbody} en mode \emph{Is Kinematic}. Il sert uniquement à déclencher la zone trigger du sapin : la physique ne le déplace pas.
-\end{itemize}
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{Il fuit par le même chemin.} Son point de sortie est son point d'apparition, ce qui rend sa trajectoire prévisible. Choisir le point de sortie le plus éloigné du joueur le rendrait plus difficile à intercepter.
-  \item \textbf{Le sapin est trouvé par son nom}, comme le \texttt{ChallengeManager}. Si l'objet \texttt{GiftZone} est renommé, les voleurs ne bougent plus.
-  \item \textbf{\texttt{OnDestroy()} est aussi appelée au rechargement de la scène}, quand on clique sur \og Rejouer \fg{}. Le cadeau est alors ajouté à un sapin qui va lui-même être détruit, donc ça n'a aucun effet visible, mais c'est un comportement à connaître.
-  \item \textbf{Un voleur sans cadeau à voler repart sans rien faire.} Il pourrait par exemple s'en prendre au cadeau que porte le joueur.
-\end{itemize}
-
-% ---------------------------------------------------------------------
-\subsection{WeaponEffects}
-
-\textbf{Rôle.} Afficher les effets visuels des tirs : le trait, les impacts, l'explosion et le recul de l'arme.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{llp{7cm}}
-\toprule
-\textbf{Paramètre} & \textbf{Valeur} & \textbf{Rôle} \\
-\midrule
-\texttt{line} & LineRenderer & le trait du tir \\
-\texttt{muzzle} & Muzzle & point de départ du trait (bout de l'arme) \\
-\texttt{lineDuration} & 0,06 s & durée d'affichage du trait \\
-\texttt{shotColor}, \texttt{slowColor}, \texttt{cannonColor} & blanc, cyan, orange & couleur selon l'arme \\
-\texttt{impactPrefab}, \texttt{explosionPrefab} & ImpactSpark, CannonExplosion & particules \\
-\texttt{animator} & Animator de l'arme & joue le recul \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Fonctionnement.}
-\begin{itemize}
-  \item Le \texttt{PlayerController} appelle \texttt{PlayShot()}, \texttt{PlaySlow()} ou \texttt{PlayCannon()} avec le point d'arrivée du tir et un booléen qui indique si quelque chose a été touché.
-  \item \texttt{DrawLine()} place les deux extrémités du LineRenderer avec \texttt{SetPosition}, règle sa couleur et son épaisseur, l'active, retient l'heure à laquelle il doit disparaître et déclenche le recul. \texttt{Update()} le désactive quand ce moment est passé.
-  \item \texttt{SpawnEffect()} instancie un prefab de particules au point touché et programme sa destruction.
-\end{itemize}
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{Un seul trait à la fois.} Un nouveau tir remplace le trait précédent. Avec la cadence du jeu, ça ne se voit pas.
-  \item \textbf{Le trait ne suit pas l'arme.} Ses extrémités sont fixées au moment du tir. Si le joueur tourne pendant les 0,06 s, le trait reste en place, mais c'est trop court pour être visible.
-  \item \textbf{Un effet est créé puis détruit à chaque impact.} Pour un jeu avec beaucoup de tirs, on réutiliserait plutôt des effets déjà créés (\emph{pooling}). Ici, la cadence est faible et ça ne pose pas de problème.
-  \item \textbf{Le départ du trait et la visée ne sont pas au même endroit.} Le rayon part du centre de la caméra, alors que le trait part du bout de l'arme. Le trait est donc légèrement en biais, ce qui est l'effet habituel dans les jeux de tir.
-\end{itemize}
-
-% ---------------------------------------------------------------------
-\subsection{PumpkinAmmo}
-
-\textbf{Rôle.} Faire d'une citrouille de nuit une munition pour le canon.
-
-\textbf{Fonctionnement.} Le script est placé sur chaque citrouille de nuit, qui a son propre collider. Quand le joueur la vise à moins de 3 m et appuie sur E, le \texttt{PlayerController} appelle \texttt{Collect()}, qui désactive la citrouille avec \texttt{SetActive(false)} et renvoie le nombre de charges qu'elle donne (1 par défaut). Comme les citrouilles font partie des décorations de nuit, le \texttt{DayNightManager} les réactive toutes à la tombée de la nuit suivante.
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{Rien n'indique qu'une citrouille est ramassable.} Le joueur doit l'apprendre par le message du HUD. Un contour lumineux ou une info-bulle quand on la vise aiderait.
-  \item \textbf{Le nombre de munitions n'est pas limité.} Un joueur qui ramasse toutes les citrouilles en début de nuit peut accumuler beaucoup de charges.
-\end{itemize}
-
-% ---------------------------------------------------------------------
-\subsection{HUD}
-
-\textbf{Rôle.} Afficher les informations de la partie (vie, défi, phase, cadeaux, arme), signaler les dégâts et les changements de phase, et gérer les écrans de fin.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{p{6cm}p{8cm}}
-\toprule
-\textbf{Paramètre} & \textbf{Rôle} \\
-\midrule
-\texttt{healthBar} & barre de vie (\emph{UI > Slider}) \\
-\texttt{damageFlash}, \texttt{flashFadeSpeed} & image rouge plein écran et vitesse à laquelle elle s'efface \\
-\texttt{bigText}, \texttt{countdownSeconds}, \texttt{titleSeconds} & grand texte central : compte à rebours (5 s) et titre de phase (2,5 s) \\
-\texttt{scoreText}, \texttt{challengeText}, \texttt{phaseText}, \texttt{giftText}, \texttt{weaponText} & textes du HUD (\emph{UI > Legacy > Text}) \\
-\texttt{gameOverPanel}, \texttt{victoryPanel} & écrans de fin \\
-\texttt{playerHealth}, \texttt{player}, \texttt{challengeManager}, \texttt{dayNightManager}, \texttt{tree} & références glissées depuis la Hierarchy \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Fonctionnement.}
-\begin{itemize}
-  \item À chaque frame, les textes sont mis à jour : défis réussis, défi en cours, phase et temps restant, cadeaux sous le sapin, et état de l'arme (ralentisseur, ou canon avec ses charges et sa recharge).
-  \item \texttt{UpdateHealth()} règle la barre de vie. Elle compare la vie à celle de la frame précédente (\texttt{lastHp}) : si elle a baissé, l'image rouge devient visible (transparence à 0,45), puis \texttt{Mathf.MoveTowards} la ramène vers 0 à chaque frame.
-  \item \texttt{UpdateBigText()} affiche le titre de la phase pendant ses premières secondes, puis un compte à rebours pendant les dernières, et un texte vide le reste du temps.
-  \item Quand le nombre de cadeaux atteint l'objectif, ou quand la vie du joueur tombe à 0, le HUD affiche l'écran de fin, met \texttt{Time.timeScale} à 0 (ce qui fige les monstres, les cooldowns et le spawner) et libère la souris.
-  \item \texttt{Restart()}, appelée par le bouton \og Rejouer \fg{}, remet \texttt{Time.timeScale} à 1 et recharge la scène avec \texttt{SceneManager.LoadScene}.
-\end{itemize}
-
-\textbf{Limites et problèmes connus.}
-\begin{itemize}
-  \item \textbf{Le flash rouge n'indique pas d'où vient l'attaque.} Le joueur sait qu'il est touché, mais pas par où. Une flèche ou un dégradé du côté de l'attaquant serait plus précis.
-  \item \textbf{Les textes sont reconstruits à chaque frame.} Les chaînes de caractères sont recréées environ 60 fois par seconde, même quand rien n'a changé. C'est négligeable ici.
-  \item \textbf{Des erreurs en boucle si une référence manque.} Si une case de l'Inspector est vide, \texttt{Update()} provoque une \texttt{NullReferenceException} à chaque frame.
-  \item \textbf{Les textes Legacy.} J'ai utilisé l'ancien composant \texttt{Text}, plus simple, plutôt que TextMeshPro, qui est recommandé aujourd'hui par Unity mais demande d'importer des ressources supplémentaires.
-\end{itemize}
+On a aussi modifié la récompense du défi pour donner au joueur un moyen de regagner de la vie, qui n'existait pas : s'il a toute sa vie, il gagne le cadeau doré ; s'il est blessé, il récupère à la place 30\,\% de sa vie maximale.
 
 % =====================================================================
 \section{Problèmes rencontrés pendant le développement}
 
 \subsection{Le tir comptait double}
-Après avoir lancé le jeu deux fois de suite, un seul tir retirait deux points de vie (la cible passait de 2 à 0 PV). L'abonnement à l'événement de tir de l'Input System (\texttt{fire.action.performed += FirePressed}) n'était jamais retiré. Comme le rechargement du domaine est désactivé au lancement du mode Play, l'ancien abonnement restait actif d'une partie à l'autre. Pour corriger ce problème, j'ai désabonné l'événement dans \texttt{OnDestroy()}. \texttt{Health} ignore aussi les coups reçus quand l'objet est déjà mort, car \texttt{Destroy} n'agit qu'à la fin de la frame.
+Après avoir lancé le jeu deux fois de suite, un seul tir retirait deux points de vie (la cible passait de 2 à 0 PV). L'abonnement à l'événement de tir de l'Input System (\texttt{fire.action.performed += FirePressed}) n'était jamais retiré. Comme le rechargement du domaine est désactivé au lancement du mode Play, l'ancien abonnement restait actif d'une partie à l'autre. Pour corriger ce problème, on a désabonné l'événement dans \texttt{OnDestroy()}. \texttt{Health} ignore aussi les coups reçus quand l'objet est déjà mort, car \texttt{Destroy} n'agit qu'à la fin de la frame.
 
 \subsection{Le prefab du joueur refusait de s'enregistrer}
-Unity affichait l'erreur \og You are trying to save a Prefab with a missing script \fg{}. Le prefab \texttt{Player} fourni contenait un composant dont le script n'était pas dans le package. J'ai retiré ce composant, qui ne faisait rien.
+Unity affichait l'erreur \og You are trying to save a Prefab with a missing script \fg{}. Le prefab \texttt{Player} fourni contenait un composant dont le script n'était pas dans le package. On a retiré ce composant, qui ne faisait rien.
 
 \subsection{Des milliers d'erreurs dans la Console}
-Quand une créature n'est pas posée sur la NavMesh, \texttt{SetDestination} provoque une erreur à chaque frame, ce qui faisait plus de 999 erreurs en quelques secondes et ralentissait fortement l'ordinateur. J'ai ajouté une vérification au démarrage : si \texttt{agent.isOnNavMesh} est faux, la créature affiche un seul avertissement et désactive son script.
+Quand une créature n'est pas posée sur la NavMesh, \texttt{SetDestination} provoque une erreur à chaque frame, ce qui faisait plus de 999 erreurs en quelques secondes et ralentissait fortement l'ordinateur. On a ajouté une vérification au démarrage : si \texttt{agent.isOnNavMesh} est faux, la créature affiche un seul avertissement et désactive son script.
 
 \subsection{On pouvait tirer pendant le Game Over}
-En relisant le code, j'ai remarqué que \texttt{Time.timeScale = 0} met bien le temps en pause, mais pas les événements de l'Input System. Un clic pendant l'écran de fin lançait donc toujours un rayon. Si une créature mourait à ce moment-là, le défi progressait. J'ai corrigé ce problème en ajoutant au début de \texttt{FirePressed} et de \texttt{SlowPressed} :
+En relisant le code, on a remarqué que \texttt{Time.timeScale = 0} met bien le temps en pause, mais pas les événements de l'Input System. Un clic pendant l'écran de fin lançait donc toujours un rayon. Si une créature mourait à ce moment-là, le défi progressait. On a corrigé ce problème en ajoutant au début de \texttt{FirePressed} et de \texttt{SlowPressed} :
 \begin{lstlisting}
 if (Time.timeScale == 0)
 {
@@ -967,15 +290,15 @@ Pendant les tests, le défi affiché, \og Tue 3 créatures \fg{}, ne progressait
 
 Pour corriger ce problème :
 \begin{itemize}
-  \item j'ai élargi les textes du HUD et réglé \emph{Horizontal Overflow} sur \emph{Overflow}, pour que le texte ne soit plus jamais coupé ;
+  \item on a élargi les textes du HUD et réglé \emph{Horizontal Overflow} sur \emph{Overflow}, pour que le texte ne soit plus jamais coupé ;
   \item le \texttt{ChallengeManager} écrit maintenant un message dans la Console quand une créature tuée ne compte pas pour le défi.
 \end{itemize}
-Un deuxième problème est apparu après l'élargissement : les textes sortaient de l'écran par la gauche. Le \emph{pivot} d'un élément d'UI, c'est-à-dire son point de référence, est par défaut au centre du rectangle. Avec \emph{Pos X} = 120 et une largeur de 500 pixels, le rectangle commençait donc à $120 - 250 = -130$ pixels, hors de l'écran. J'ai placé le pivot sur le bord gauche (\emph{Pivot X} = 0) et réglé \emph{Pos X} à 20. Le texte s'étend maintenant uniquement vers la droite à partir du bord de l'écran.
+Un deuxième problème est apparu après l'élargissement : les textes sortaient de l'écran par la gauche. Le \emph{pivot} d'un élément d'UI, c'est-à-dire son point de référence, est par défaut au centre du rectangle. Avec \emph{Pos X} = 120 et une largeur de 500 pixels, le rectangle commençait donc à $120 - 250 = -130$ pixels, hors de l'écran. On a placé le pivot sur le bord gauche (\emph{Pivot X} = 0) et réglé \emph{Pos X} à 20. Le texte s'étend maintenant uniquement vers la droite à partir du bord de l'écran.
 
 C'est un bon exemple d'un problème d'interface qui ressemblait à un bug dans la logique du jeu.
 
 \subsection{Un brouillard de nuit peu convaincant}
-Le brouillard s'activait bien la nuit, mais le résultat ne ressemblait pas à une nuit d'Halloween. J'ai identifié trois causes :
+Le brouillard s'activait bien la nuit, mais le résultat ne ressemblait pas à une nuit d'Halloween. On a identifié trois causes :
 \begin{itemize}
   \item sur un sol gris et vide, le brouillard ne peut que délaver l'image de façon uniforme ;
   \item le ciel n'est jamais touché par le brouillard dans Unity, et la couleur choisie ne correspondait pas à l'horizon du ciel de nuit, ce qui créait une coupure nette ;
@@ -986,18 +309,14 @@ Pour améliorer le rendu, le script règle maintenant la couleur du brouillard s
 \subsection{Les voleurs ne volaient rien}
 Dans la première version, le voleur volait un cadeau quand il arrivait à moins de 3 m du centre du sapin. En test, les voleurs se regroupaient autour du sapin, mais rien ne se passait. Le sapin avait été agrandi 2 fois, et la NavMesh contourne son tronc : les agents s'arrêtaient au bord de ce trou, à plus de 3 m du centre, et n'atteignaient jamais la distance de vol.
 
-Plutôt que d'augmenter la distance, ce qui aurait dépendu de la taille du sapin, j'ai réutilisé la zone trigger du sapin. Quand un objet y entre, \texttt{OnTriggerEnter} vérifie s'il a un script \texttt{Thief}, et si oui, appelle sa méthode \texttt{ReachTree()}. Unity ne déclenche un trigger que si l'un des deux objets a un \emph{Rigidbody} (ou un \emph{CharacterController}, ce qui explique que la détection du joueur marchait déjà). J'ai donc ajouté au voleur un Rigidbody en mode \emph{Is Kinematic} : il déclenche le trigger, mais la physique ne le déplace pas, c'est toujours la NavMesh qui s'en charge.
-
-\subsection{Une scène perdue}
-L'ordinateur s'est éteint alors que la scène n'était pas enregistrée. Unity avait créé une copie de secours dans le dossier \texttt{Assets/\_Recovery}, ce qui m'a permis de la récupérer. Depuis, j'enregistre régulièrement avec Ctrl+S.
-
+Plutôt que d'augmenter la distance, ce qui aurait dépendu de la taille du sapin, on a réutilisé la zone trigger du sapin. Quand un objet y entre, \texttt{OnTriggerEnter} vérifie s'il a un script \texttt{Thief}, et si oui, appelle sa méthode \texttt{ReachTree()}. Unity ne déclenche un trigger que si l'un des deux objets a un \emph{Rigidbody} (ou un \emph{CharacterController}, ce qui explique que la détection du joueur marchait déjà). On a donc ajouté au voleur un Rigidbody en mode \emph{Is Kinematic} : il déclenche le trigger, mais la physique ne le déplace pas, c'est toujours la NavMesh qui s'en charge.
 
 % =====================================================================
 \section{Conclusion}
-Le jeu final remplit les exigences du sujet : les cinq notions obligatoires (raycast, prefabs, navigation, UI et import d'assets 3D) sont utilisées, l'arme possède deux capacités spéciales (le ralentisseur le jour et le canon la nuit), et un défi est généré chaque nuit, avec une récompense. J'ai aussi ajouté plusieurs bonus : des animations (le personnage, les monstres grâce au reciblage, le recul de l'arme) et des particules (impacts, explosion, fumée, neige).
+Le jeu final remplit les exigences du sujet : les cinq notions obligatoires (raycast, prefabs, navigation, UI et import d'assets 3D) sont utilisées, l'arme possède deux capacités spéciales (le ralentisseur le jour et le canon la nuit), et un défi est généré chaque nuit, avec une récompense. On a aussi ajouté plusieurs bonus : des animations (le personnage, les monstres grâce au reciblage, le recul de l'arme) et des particules (impacts, explosion, fumée, neige).
 
-Avancer par petites étapes, en testant chacune avant de passer à la suivante, m'a beaucoup aidé : chaque problème apparaissait seul et était plus facile à comprendre. Plusieurs problèmes rencontrés m'ont appris des points importants d'Unity : un événement de l'Input System doit être désabonné, un trigger a besoin d'un Rigidbody sur l'un des deux objets, un test de distance dépend de la taille des objets et de la forme de la NavMesh, et une interface peut cacher une information au point de faire croire à un bug. J'ai aussi appris qu'un jeu qui fonctionne n'est pas forcément agréable à jouer : il a fallu rééquilibrer la difficulté et retravailler l'interface après avoir joué plusieurs parties.
+Avancer par petites étapes, en testant chacune avant de passer à la suivante, nous a beaucoup aidé : chaque problème apparaissait seul et était plus facile à comprendre. Plusieurs problèmes rencontrés nous ont appris des points importants d'Unity : un événement de l'Input System doit être désabonné, un trigger a besoin d'un Rigidbody sur l'un des deux objets, un test de distance dépend de la taille des objets et de la forme de la NavMesh, et une interface peut cacher une information au point de faire croire à un bug. On a aussi appris qu'un jeu qui fonctionne n'est pas forcément agréable à jouer : il a fallu rééquilibrer la difficulté et retravailler l'interface après avoir joué plusieurs parties.
 
-Parmi les améliorations possibles, la documentation du code en recense plusieurs : empêcher la caméra de traverser les murs, ajouter des animations de déplacement latéral pour Santa, indiquer la direction des attaques, réutiliser les effets de particules au lieu de les recréer, ou encore ajouter du son.
+Parmi les améliorations possibles : empêcher la caméra de traverser les murs, ajouter des animations de déplacement latéral pour Santa, indiquer la direction des attaques, réutiliser les effets de particules au lieu de les recréer, ou encore ajouter du son.
 
 \end{document}
