@@ -312,6 +312,13 @@ Dans la première version, le voleur volait un cadeau quand il arrivait à moins
 Plutôt que d'augmenter la distance, ce qui aurait dépendu de la taille du sapin, on a réutilisé la zone trigger du sapin. Quand un objet y entre, \texttt{OnTriggerEnter} vérifie s'il a un script \texttt{Thief}, et si oui, appelle sa méthode \texttt{ReachTree()}. Unity ne déclenche un trigger que si l'un des deux objets a un \emph{Rigidbody} (ou un \emph{CharacterController}, ce qui explique que la détection du joueur marchait déjà). On a donc ajouté au voleur un Rigidbody en mode \emph{Is Kinematic} : il déclenche le trigger, mais la physique ne le déplace pas, c'est toujours la NavMesh qui s'en charge.
 
 % =====================================================================
+\section{Usage de l'IA}
+
+Le jeu repose sur les notions du cours : raycast, \texttt{GetComponent}, prefabs, triggers, \texttt{if} et tableaux. Une IA a seulement aidé pour quelques ajouts que les supports ne montrent pas.
+
+L'exemple le plus clair est \texttt{InputActionReference}. Le cours VII lit les axes de l'ancien système d'entrées. Le script fourni par le professeur branche déjà le déplacement et le tir avec le nouvel Input System (\texttt{action.performed}). On a repris exactement cette forme pour le clic droit et la touche E, sans introduire d'autre mécanisme. Le même type d'aide a servi pour \texttt{Physics.OverlapSphere}, la sphère du canon, qui prolonge le \texttt{Physics.Raycast} du cours, et pour le \texttt{LayerMask} qui empêche le rayon de toucher Santa.
+
+% =====================================================================
 \section{Conclusion}
 Le jeu final remplit les exigences du sujet : les cinq notions obligatoires (raycast, prefabs, navigation, UI et import d'assets 3D) sont utilisées, l'arme possède deux capacités spéciales (le ralentisseur le jour et le canon la nuit), et un défi est généré chaque nuit, avec une récompense. On a aussi ajouté plusieurs bonus : des animations (le personnage, les monstres grâce au reciblage, le recul de l'arme) et des particules (impacts, explosion, fumée, neige).
 
